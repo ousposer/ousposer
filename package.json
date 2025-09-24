@@ -1,0 +1,53 @@
+{
+  "name": "ousposer",
+  "version": "1.0.0",
+  "description": "OusPoser - Fresh spot detection system for Paris hot weather relief",
+  "private": true,
+  "workspaces": [
+    "data-processing",
+    "nextjs-app"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:data\" \"npm run dev:next\"",
+    "dev:data": "cd data-processing && npm run dev",
+    "dev:next": "cd nextjs-app && npm run dev",
+    "build": "npm run build:data && npm run build:next",
+    "build:data": "cd data-processing && npm run build",
+    "build:next": "cd nextjs-app && npm run build",
+    "start": "concurrently \"npm run start:data\" \"npm run start:next\"",
+    "start:data": "cd data-processing && npm start",
+    "start:next": "cd nextjs-app && npm start",
+    "setup": "npm run setup:data",
+    "setup:data": "cd data-processing && npm run setup-db",
+    "test": "npm run test:data && npm run test:next",
+    "test:data": "cd data-processing && npm test",
+    "test:next": "cd nextjs-app && npm test",
+    "lint": "npm run lint:data && npm run lint:next",
+    "lint:data": "cd data-processing && npm run lint",
+    "lint:next": "cd nextjs-app && npm run lint"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": [
+    "paris",
+    "urban-planning",
+    "heatmap",
+    "fresh-spots",
+    "street-furniture",
+    "geospatial",
+    "nextjs",
+    "postgresql",
+    "postgis"
+  ],
+  "author": "Flow-Fly",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Flow-Fly/ousposer.git"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}

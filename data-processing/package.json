@@ -1,8 +1,8 @@
 {
-	"name": "ousposer",
+	"name": "ousposer-data-processing",
 	"version": "1.0.0",
-	"description": "Production-ready Paris street furniture detection system with 7,858 benches and 26,879 trash cans detected",
-	"main": "server.js",
+	"description": "Data processing pipeline for OusPoser fresh spot detection system",
+	"main": "server-postgresql.js",
 	"scripts": {
 		"start": "node server-postgresql.js",
 		"setup-db": "node scripts/setup-postgresql.js",
