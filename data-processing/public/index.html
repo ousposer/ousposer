@@ -448,81 +448,78 @@
 
 				data.forEach((obj) => {
 					try {
-						const geoShape = JSON.parse(obj.geo_shape)
-						const coordinates = geoShape.geometry.coordinates
-
-						// Validate coordinates exist and have valid data
+						// Validate coordinates exist and are valid (new point-based schema)
 						if (
-							!coordinates ||
-							!Array.isArray(coordinates) ||
-							coordinates.length < 2
+							typeof obj.latitude !== "number" ||
+							typeof obj.longitude !== "number" ||
+							isNaN(obj.latitude) ||
+							isNaN(obj.longitude) ||
+							obj.latitude < 48.8 ||
+							obj.latitude > 48.92 ||
+							obj.longitude < 2.2 ||
+							obj.longitude > 2.5
 						) {
 							console.warn(
-								`Invalid coordinates for object ${obj.objectid}:`,
-								coordinates
+								`Invalid coordinates for object ${
+									obj.furniture_id || obj.objectid
+								}:`,
+								obj.latitude,
+								obj.longitude
 							)
 							return
 						}
 
-						// Convert coordinates to Leaflet format [lat, lng] and validate
-						const latLngs = coordinates
-							.map(([lng, lat]) => {
-								// Validate individual coordinate pairs
-								if (
-									typeof lng !== "number" ||
-									typeof lat !== "number" ||
-									isNaN(lng) ||
-									isNaN(lat) ||
-									lat < 48.8 ||
-									lat > 48.92 ||
-									lng < 2.2 ||
-									lng > 2.5
-								) {
-									return null
-								}
-								return [lat, lng]
-							})
-							.filter((coord) => coord !== null)
-
-						// Skip if we don't have enough valid coordinates
-						if (latLngs.length < 2) {
-							console.warn(
-								`Not enough valid coordinates for object ${obj.objectid}`
-							)
-							return
+						// Determine color based on furniture type and length
+						let color = "#3388ff" // default blue
+						if (obj.furniture_type === "bench") {
+							color = getComponentColor(obj.total_length_m || 5) // use length if available
+						} else if (obj.furniture_type === "poubelle") {
+							color = "#ff6b35" // orange for trash cans
 						}
 
-						const color = getComponentColor(obj.total_length_m)
-
-						const polyline = L.polyline(latLngs, {
+						// Create circle marker for point data
+						const marker = L.circleMarker([obj.latitude, obj.longitude], {
 							color: color,
+							fillColor: color,
+							fillOpacity: 0.6,
+							radius: obj.furniture_type === "bench" ? 6 : 4,
 							weight: 2,
-							opacity: 0.8,
 						})
 
 						// Add popup with object info
-						polyline.bindPopup(`
-                        <strong>Object ID:</strong> ${obj.objectid}<br>
-                        <strong>Arrondissement:</strong> ${
-													obj.arrondissement || "Unknown"
-												}<br>
-                        <strong>Length:</strong> ${obj.total_length_m.toFixed(
-													2
-												)}m<br>
-                        <strong>Points:</strong> ${obj.point_count}<br>
-                        <strong>Aspect Ratio:</strong> ${obj.aspect_ratio.toFixed(
-													2
-												)}
-                    `)
+						const popupContent =
+							obj.furniture_type === "bench"
+								? `
+							<strong>Bench ID:</strong> ${obj.furniture_id}<br>
+							<strong>Type:</strong> ${obj.subtype || obj.bench_type}<br>
+							<strong>Arrondissement:</strong> ${obj.arrondissement || "Unknown"}<br>
+							<strong>Length:</strong> ${(obj.total_length_m || 0).toFixed(2)}m<br>
+							<strong>Components:</strong> ${obj.component_count || obj.total_components}<br>
+							<strong>Confidence:</strong> ${(obj.detection_confidence * 100).toFixed(1)}%
+						`
+								: `
+							<strong>Furniture ID:</strong> ${obj.furniture_id}<br>
+							<strong>Type:</strong> ${obj.furniture_type}<br>
+							<strong>Arrondissement:</strong> ${obj.arrondissement || "Unknown"}<br>
+							<strong>Confidence:</strong> ${(obj.detection_confidence * 100).toFixed(1)}%
+						`
 
-						furnitureLayer.addLayer(polyline)
+						marker.bindPopup(popupContent)
+						furnitureLayer.addLayer(marker)
 
 						// Update statistics
-						totalLength += obj.total_length_m
-						minLen = Math.min(minLen, obj.total_length_m)
-						maxLen = Math.max(maxLen, obj.total_length_m)
+						const length = obj.total_length_m || 0
+						totalLength += length
+						if (length > 0) {
+							minLen = Math.min(minLen, length)
+							maxLen = Math.max(maxLen, length)
+						}
 					} catch (error) {
-						console.warn("Error processing object:", obj.objectid, error)
+						console.warn(
+							"Error processing object:",
+							obj.furniture_id || obj.objectid,
+							error
+						)
 					}
 				})
 
@@ -610,24 +607,22 @@
 
 						// Add popup with piece info
 						rectangle.bindPopup(`
-                        <strong>Piece ID:</strong> ${piece.piece_id}<br>
-                        <strong>Type:</strong> ${piece.estimated_type}<br>
-                        <strong>Arrondissement:</strong> ${
-													piece.arrondissement
-												}<br>
-                        <strong>Components:</strong> ${
-													piece.component_count
-												}<br>
-                        <strong>Total Length:</strong> ${piece.total_length_m.toFixed(
-													2
-												)}m<br>
-                        <strong>Max Span:</strong> ${piece.max_span_m.toFixed(
-													2
-												)}m<br>
-                        <strong>Complexity:</strong> ${piece.complexity_score.toFixed(
-													2
-												)}
-                    `)
+			                     <strong>Piece ID:</strong> ${piece.piece_id}<br>
+			                     <strong>Type:</strong> ${piece.estimated_type}<br>
+			                     <strong>Arrondissement:</strong> ${
+															piece.arrondissement
+														}<br>
+			                     <strong>Components:</strong> ${piece.component_count}<br>
+			                     <strong>Total Length:</strong> ${piece.total_length_m.toFixed(
+															2
+														)}m<br>
+			                     <strong>Max Span:</strong> ${piece.max_span_m.toFixed(
+															2
+														)}m<br>
+			                     <strong>Complexity:</strong> ${piece.complexity_score.toFixed(
+															2
+														)}
+			                 `)
 
 						furnitureLayer.addLayer(rectangle)
 
