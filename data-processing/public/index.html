@@ -451,8 +451,46 @@
 						const geoShape = JSON.parse(obj.geo_shape)
 						const coordinates = geoShape.geometry.coordinates
 
-						// Convert coordinates to Leaflet format [lat, lng]
-						const latLngs = coordinates.map(([lng, lat]) => [lat, lng])
+						// Validate coordinates exist and have valid data
+						if (
+							!coordinates ||
+							!Array.isArray(coordinates) ||
+							coordinates.length < 2
+						) {
+							console.warn(
+								`Invalid coordinates for object ${obj.objectid}:`,
+								coordinates
+							)
+							return
+						}
+
+						// Convert coordinates to Leaflet format [lat, lng] and validate
+						const latLngs = coordinates
+							.map(([lng, lat]) => {
+								// Validate individual coordinate pairs
+								if (
+									typeof lng !== "number" ||
+									typeof lat !== "number" ||
+									isNaN(lng) ||
+									isNaN(lat) ||
+									lat < 48.8 ||
+									lat > 48.92 ||
+									lng < 2.2 ||
+									lng > 2.5
+								) {
+									return null
+								}
+								return [lat, lng]
+							})
+							.filter((coord) => coord !== null)
+
+						// Skip if we don't have enough valid coordinates
+						if (latLngs.length < 2) {
+							console.warn(
+								`Not enough valid coordinates for object ${obj.objectid}`
+							)
+							return
+						}
 
 						const color = getComponentColor(obj.total_length_m)
 
@@ -501,13 +539,28 @@
 				).textContent = `Range: ${minLen.toFixed(2)}-${maxLen.toFixed(2)}m`
 
 				// Fit map to data if we have objects
-				if (data.length > 0) {
+				if (data.length > 0 && furnitureLayer.getLayers().length > 0) {
 					// Calculate bounds from all coordinates
 					let bounds = L.latLngBounds()
+					let hasValidBounds = false
+
 					furnitureLayer.eachLayer((layer) => {
-						bounds.extend(layer.getBounds())
+						try {
+							const layerBounds = layer.getBounds()
+							if (layerBounds && layerBounds.isValid()) {
+								bounds.extend(layerBounds)
+								hasValidBounds = true
+							}
+						} catch (error) {
+							console.warn("Error getting bounds for layer:", error)
+						}
 					})
-					map.fitBounds(bounds, { padding: [20, 20] })
+
+					if (hasValidBounds) {
+						map.fitBounds(bounds, { padding: [20, 20] })
+					} else {
+						console.warn("No valid bounds found, keeping current map view")
+					}
 				}
 			}
 
@@ -606,12 +659,27 @@
 				).textContent = `Avg Components: ${avgComponents.toFixed(1)}`
 
 				// Fit map to data if we have pieces
-				if (data.length > 0) {
+				if (data.length > 0 && furnitureLayer.getLayers().length > 0) {
 					let bounds = L.latLngBounds()
+					let hasValidBounds = false
+
 					furnitureLayer.eachLayer((layer) => {
-						bounds.extend(layer.getBounds())
+						try {
+							const layerBounds = layer.getBounds()
+							if (layerBounds && layerBounds.isValid()) {
+								bounds.extend(layerBounds)
+								hasValidBounds = true
+							}
+						} catch (error) {
+							console.warn("Error getting bounds for layer:", error)
+						}
 					})
-					map.fitBounds(bounds, { padding: [20, 20] })
+
+					if (hasValidBounds) {
+						map.fitBounds(bounds, { padding: [20, 20] })
+					} else {
+						console.warn("No valid bounds found, keeping current map view")
+					}
 				}
 			}
 
