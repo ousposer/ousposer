@@ -1,58 +1,56 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 /* Custom styles for Leaflet map */
 .leaflet-container {
-  height: 100%;
-  width: 100%;
+	height: 100%;
+	width: 100%;
 }
 
 /* Loading spinner */
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+	to {
+		transform: rotate(360deg);
+	}
 }
 
 .animate-spin {
-  animation: spin 1s linear infinite;
+	animation: spin 1s linear infinite;
 }
 
 /* Map controls styling */
 .map-controls {
-  @apply bg-white rounded-lg shadow-md p-4 space-y-3;
+	@apply bg-white rounded-lg shadow-md p-4 space-y-3;
 }
 
 .map-control-button {
-  @apply px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors;
+	@apply px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors;
 }
 
 .map-control-button:disabled {
-  @apply bg-gray-300 cursor-not-allowed;
+	@apply bg-gray-300 cursor-not-allowed;
 }
 
 /* Fresh spot analysis panel */
 .fresh-spot-panel {
-  @apply bg-white rounded-lg shadow-lg p-6 max-w-sm;
+	@apply bg-white rounded-lg shadow-lg p-6 max-w-sm;
 }
 
 .score-indicator {
-  @apply inline-block w-4 h-4 rounded-full mr-2;
+	@apply inline-block w-4 h-4 rounded-full mr-2;
 }
 
 .score-excellent {
-  @apply bg-blue-500;
+	@apply bg-blue-500;
 }
 
 .score-good {
-  @apply bg-green-500;
+	@apply bg-green-500;
 }
 
 .score-fair {
-  @apply bg-yellow-500;
+	@apply bg-yellow-500;
 }
 
 .score-poor {
-  @apply bg-red-500;
+	@apply bg-red-500;
 }
