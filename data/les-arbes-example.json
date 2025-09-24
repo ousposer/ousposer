@@ -1,0 +1,107 @@
+[
+	{
+		"idbase": 2027747,
+		"typeemplacement": "Arbre",
+		"domanialite": "Alignement",
+		"arrondissement": "PARIS 19E ARRDT",
+		"complementadresse": null,
+		"adresse": "QUAI DE LA CHARENTE",
+		"idemplacement": "000101016",
+		"libellefrancais": "Orme",
+		"genre": "Ulmus",
+		"espece": null,
+		"varieteoucultivar": "''Nanguen'' LUTECE",
+		"circonferenceencm": 75,
+		"hauteurenm": 8,
+		"stadedeveloppement": "Jeune (arbre)Adulte",
+		"remarquable": "NON",
+		"geo_point_2d": {
+			"lon": 2.385637639884461,
+			"lat": 48.893955518206894
+		}
+	},
+	{
+		"idbase": 2032440,
+		"typeemplacement": "Arbre",
+		"domanialite": "Alignement",
+		"arrondissement": "PARIS 19E ARRDT",
+		"complementadresse": null,
+		"adresse": "RUE DE LA GARE",
+		"idemplacement": "000202004",
+		"libellefrancais": "Pin",
+		"genre": "Pinus",
+		"espece": "sylvestris",
+		"varieteoucultivar": null,
+		"circonferenceencm": 30,
+		"hauteurenm": 6,
+		"stadedeveloppement": null,
+		"remarquable": "NON",
+		"geo_point_2d": {
+			"lon": 2.3726315581244806,
+			"lat": 48.901852466478545
+		}
+	},
+	{
+		"idbase": 245937,
+		"typeemplacement": "Arbre",
+		"domanialite": "Alignement",
+		"arrondissement": "PARIS 14E ARRDT",
+		"complementadresse": "25",
+		"adresse": "AVENUE REILLE",
+		"idemplacement": "000501001",
+		"libellefrancais": "Sophora",
+		"genre": "Styphnolobium",
+		"espece": "japonicum",
+		"varieteoucultivar": null,
+		"circonferenceencm": 35,
+		"hauteurenm": 5,
+		"stadedeveloppement": "Jeune (arbre)",
+		"remarquable": "NON",
+		"geo_point_2d": {
+			"lon": 2.335737871686163,
+			"lat": 48.824123558149715
+		}
+	},
+	{
+		"idbase": 210182,
+		"typeemplacement": "Arbre",
+		"domanialite": "Alignement",
+		"arrondissement": "PARIS 19E ARRDT",
+		"complementadresse": null,
+		"adresse": "BOULEVARD DE LA VILLETTE",
+		"idemplacement": "000404015",
+		"libellefrancais": "Sophora",
+		"genre": "Styphnolobium",
+		"espece": "japonicum",
+		"varieteoucultivar": null,
+		"circonferenceencm": 90,
+		"hauteurenm": 12,
+		"stadedeveloppement": "Jeune (arbre)Adulte",
+		"remarquable": "NON",
+		"geo_point_2d": {
+			"lon": 2.3742420831875335,
+			"lat": 48.87470680042928
+		}
+	},
+	{
+		"idbase": 234159,
+		"typeemplacement": "Arbre",
+		"domanialite": "Alignement",
+		"arrondissement": "BOIS DE BOULOGNE",
+		"complementadresse": null,
+		"adresse": "ALLEE DES FORTIFICATIONS",
+		"idemplacement": "000301015",
+		"libellefrancais": "Tilleul",
+		"genre": "Tilia",
+		"espece": "cordata",
+		"varieteoucultivar": null,
+		"circonferenceencm": 185,
+		"hauteurenm": 25,
+		"stadedeveloppement": "Adulte",
+		"remarquable": "NON",
+		"geo_point_2d": {
+			"lon": 2.2646127951898944,
+			"lat": 48.8602663141537
+		}
+	}
+]

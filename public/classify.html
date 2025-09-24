@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Manual Classification Interface - OusPoser</title>
+		<link
+			rel="stylesheet"
+			href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+			integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+			crossorigin="" />
+		<script
+			src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+			integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+			crossorigin=""></script>
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
+			}
+
+			body {
+				font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+					sans-serif;
+				background: #f5f5f5;
+				height: 100vh;
+				display: flex;
+				flex-direction: column;
+			}
+
+			.header {
+				background: white;
+				padding: 1rem;
+				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+				z-index: 1000;
+			}
+
+			.header h1 {
+				color: #2c3e50;
+				margin-bottom: 0.5rem;
+			}
+
+			.header p {
+				color: #7f8c8d;
+				font-size: 0.9rem;
+			}
+
+			.main-container {
+				display: flex;
+				flex: 1;
+				gap: 1rem;
+				padding: 1rem;
+				overflow: hidden;
+			}
+
+			.map-container {
+				flex: 1;
+				display: flex;
+				flex-direction: column;
+				gap: 1rem;
+			}
+
+			.map-section {
+				flex: 1;
+				position: relative;
+				background: white;
+				border-radius: 8px;
+				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+				overflow: hidden;
+			}
+
+			.map-header {
+				background: #34495e;
+				color: white;
+				padding: 0.75rem 1rem;
+				font-weight: 600;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+
+			.map-header .toggle-btn {
+				background: #3498db;
+				color: white;
+				border: none;
+				padding: 0.25rem 0.5rem;
+				border-radius: 4px;
+				cursor: pointer;
+				font-size: 0.8rem;
+			}
+
+			.map-header .toggle-btn:hover {
+				background: #2980b9;
+			}
+
+			.map {
+				height: 100%;
+				width: 100%;
+			}
+
+			.sidebar {
+				width: 400px;
+				background: white;
+				border-radius: 8px;
+				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+				display: flex;
+				flex-direction: column;
+				overflow: hidden;
+			}
+
+			.sidebar-header {
+				background: #2c3e50;
+				color: white;
+				padding: 1rem;
+			}
+
+			.sidebar-content {
+				flex: 1;
+				overflow-y: auto;
+				padding: 1rem;
+			}
+
+			.controls {
+				display: flex;
+				flex-direction: column;
+				gap: 1rem;
+				margin-bottom: 1.5rem;
+			}
+
+			.control-group {
+				display: flex;
+				flex-direction: column;
+				gap: 0.5rem;
+			}
+
+			.control-group label {
+				font-weight: 600;
+				color: #2c3e50;
+				font-size: 0.9rem;
+			}
+
+			.control-group select,
+			.control-group input {
+				padding: 0.5rem;
+				border: 1px solid #bdc3c7;
+				border-radius: 4px;
+				font-size: 0.9rem;
+			}
+
+			.control-group select:focus,
+			.control-group input:focus {
+				outline: none;
+				border-color: #3498db;
+			}
+
+			.btn {
+				padding: 0.75rem 1rem;
+				border: none;
+				border-radius: 4px;
+				cursor: pointer;
+				font-weight: 600;
+				transition: background-color 0.2s;
+			}
+
+			.btn-primary {
+				background: #3498db;
+				color: white;
+			}
+
+			.btn-primary:hover {
+				background: #2980b9;
+			}
+
+			.btn-secondary {
+				background: #95a5a6;
+				color: white;
+			}
+
+			.btn-secondary:hover {
+				background: #7f8c8d;
+			}
+
+			.btn-success {
+				background: #27ae60;
+				color: white;
+			}
+
+			.btn-success:hover {
+				background: #229954;
+			}
+
+			.btn-danger {
+				background: #e74c3c;
+				color: white;
+			}
+
+			.btn-danger:hover {
+				background: #c0392b;
+			}
+
+			.piece-info {
+				background: #ecf0f1;
+				padding: 1rem;
+				border-radius: 4px;
+				margin-bottom: 1rem;
+			}
+
+			.piece-info h3 {
+				color: #2c3e50;
+				margin-bottom: 0.5rem;
+			}
+
+			.piece-info .info-grid {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 0.5rem;
+				font-size: 0.9rem;
+			}
+
+			.piece-info .info-item {
+				display: flex;
+				justify-content: space-between;
+			}
+
+			.piece-info .info-label {
+				font-weight: 600;
+				color: #34495e;
+			}
+
+			.classification-section {
+				border-top: 1px solid #bdc3c7;
+				padding-top: 1rem;
+			}
+
+			.classification-buttons {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 0.5rem;
+				margin-bottom: 1rem;
+			}
+
+			.type-btn {
+				padding: 0.5rem;
+				border: 2px solid transparent;
+				border-radius: 4px;
+				cursor: pointer;
+				font-weight: 600;
+				transition: all 0.2s;
+				text-align: center;
+			}
+
+			.type-btn.poubelles {
+				background: #e74c3c;
+				color: white;
+			}
+
+			.type-btn.benches {
+				background: #2ecc71;
+				color: white;
+			}
+
+			.type-btn.jardinieres {
+				background: #f39c12;
+				color: white;
+			}
+
+			.type-btn.jardinieres_single {
+				background: #9b59b6;
+				color: white;
+			}
+
+			.type-btn.selected {
+				border-color: #2c3e50;
+				transform: scale(1.05);
+			}
+
+			.action-buttons {
+				display: flex;
+				flex-direction: column;
+				gap: 0.5rem;
+			}
+
+			.loading {
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%);
+				background: rgba(255, 255, 255, 0.9);
+				padding: 1rem;
+				border-radius: 4px;
+				z-index: 1000;
+			}
+
+			.hidden {
+				display: none !important;
+			}
+
+			.sync-indicator {
+				position: absolute;
+				top: 10px;
+				right: 10px;
+				background: rgba(0, 0, 0, 0.7);
+				color: white;
+				padding: 0.5rem;
+				border-radius: 4px;
+				font-size: 0.8rem;
+				z-index: 1000;
+			}
+
+			.sync-indicator.synced {
+				background: rgba(39, 174, 96, 0.8);
+			}
+
+			.legend {
+				background: #f8f9fa;
+				padding: 1rem;
+				border-radius: 4px;
+				margin-bottom: 1rem;
+			}
+
+			.legend h4 {
+				margin-bottom: 0.5rem;
+				color: #2c3e50;
+			}
+
+			.legend-item {
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+				margin-bottom: 0.25rem;
+				font-size: 0.8rem;
+			}
+
+			.legend-color {
+				width: 16px;
+				height: 16px;
+				border-radius: 2px;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="header">
+			<h1>🎯 Manual Classification Interface</h1>
+			<p>
+				Validate and correct furniture piece classifications. Compare individual
+				components (left) with clustered pieces (right) for accurate training
+				data.
+			</p>
+		</div>
+
+		<div class="main-container">
+			<div class="map-container">
+				<!-- Individual Components Map -->
+				<div class="map-section">
+					<div class="map-header">
+						<span>Individual Components (Precise)</span>
+						<button class="toggle-btn" id="toggleComponents">
+							Hide Components
+						</button>
+					</div>
+					<div id="componentsMap" class="map"></div>
+					<div class="sync-indicator" id="componentSync">Not Synced</div>
+				</div>
+
+				<!-- Clustered Pieces Map -->
+				<div class="map-section">
+					<div class="map-header">
+						<span>Clustered Furniture Pieces</span>
+						<button class="toggle-btn" id="togglePieces">Hide Pieces</button>
+					</div>
+					<div id="piecesMap" class="map"></div>
+					<div class="sync-indicator" id="pieceSync">Not Synced</div>
+				</div>
+			</div>
+
+			<div class="sidebar">
+				<div class="sidebar-header">
+					<h2>Classification Controls</h2>
+				</div>
+				<div class="sidebar-content">
+					<div class="controls">
+						<div class="control-group">
+							<label for="arrondissementSelect">Arrondissement:</label>
+							<select id="arrondissementSelect">
+								<option value="">Select Arrondissement</option>
+								<option value="9">9e (Test Data)</option>
+								<option value="12">12e (High Density)</option>
+								<option value="16">16e (High Density)</option>
+								<option value="1">1er</option>
+								<option value="2">2e</option>
+								<option value="3">3e</option>
+								<option value="4">4e</option>
+								<option value="5">5e</option>
+								<option value="6">6e</option>
+								<option value="7">7e</option>
+								<option value="8">8e</option>
+								<option value="10">10e</option>
+								<option value="11">11e</option>
+								<option value="13">13e</option>
+								<option value="14">14e</option>
+								<option value="15">15e</option>
+								<option value="17">17e</option>
+								<option value="18">18e</option>
+								<option value="19">19e</option>
+								<option value="20">20e</option>
+							</select>
+						</div>
+
+						<div class="control-group">
+							<label for="pieceTypeFilter">Filter by Type:</label>
+							<select id="pieceTypeFilter">
+								<option value="">All Types</option>
+								<option value="poubelles">Poubelles</option>
+								<option value="benches">Benches</option>
+								<option value="jardinieres">Jardinieres (Multi)</option>
+								<option value="jardinieres_single">Jardinieres (Single)</option>
+							</select>
+						</div>
+
+						<button class="btn btn-primary" id="loadDataBtn">Load Data</button>
+						<button class="btn btn-secondary" id="clearDataBtn">
+							Clear Maps
+						</button>
+						<button class="btn btn-success" id="exportBtn">
+							📥 Export Training Data
+						</button>
+					</div>
+
+					<div class="legend">
+						<h4>Component Colors</h4>
+						<div class="legend-item">
+							<div class="legend-color" style="background: #e74c3c"></div>
+							<span>Potential Benches (4-10m)</span>
+						</div>
+						<div class="legend-item">
+							<div class="legend-color" style="background: #f39c12"></div>
+							<span>Medium Objects (2-5m)</span>
+						</div>
+						<div class="legend-item">
+							<div class="legend-color" style="background: #3498db"></div>
+							<span>Short Objects (0.5-2m)</span>
+						</div>
+						<div class="legend-item">
+							<div class="legend-color" style="background: #95a5a6"></div>
+							<span>Tiny Objects (0-0.5m)</span>
+						</div>
+						<div class="legend-item">
+							<div class="legend-color" style="background: #9b59b6"></div>
+							<span>Large Objects (10m+)</span>
+						</div>
+					</div>
+
+					<div class="legend">
+						<h4>Piece Colors</h4>
+						<div class="legend-item">
+							<div class="legend-color" style="background: #e74c3c"></div>
+							<span>Poubelles</span>
+						</div>
+						<div class="legend-item">
+							<div class="legend-color" style="background: #2ecc71"></div>
+							<span>Benches</span>
+						</div>
+						<div class="legend-item">
+							<div class="legend-color" style="background: #f39c12"></div>
+							<span>Jardinieres (Multi)</span>
+						</div>
+						<div class="legend-item">
+							<div class="legend-color" style="background: #9b59b6"></div>
+							<span>Jardinieres (Single)</span>
+						</div>
+					</div>
+
+					<!-- Selected Piece Information -->
+					<div id="selectedPieceInfo" class="piece-info hidden">
+						<h3>Selected Piece</h3>
+						<div class="info-grid">
+							<div class="info-item">
+								<span class="info-label">ID:</span>
+								<span id="pieceId">-</span>
+							</div>
+							<div class="info-item">
+								<span class="info-label">Type:</span>
+								<span id="pieceType">-</span>
+							</div>
+							<div class="info-item">
+								<span class="info-label">Components:</span>
+								<span id="pieceComponents">-</span>
+							</div>
+							<div class="info-item">
+								<span class="info-label">Length:</span>
+								<span id="pieceLength">-</span>
+							</div>
+							<div class="info-item">
+								<span class="info-label">Span:</span>
+								<span id="pieceSpan">-</span>
+							</div>
+							<div class="info-item">
+								<span class="info-label">Complexity:</span>
+								<span id="pieceComplexity">-</span>
+							</div>
+						</div>
+
+						<div class="classification-section">
+							<h4>Correct Classification:</h4>
+							<div class="classification-buttons">
+								<button class="type-btn poubelles" data-type="poubelles">
+									Poubelles
+								</button>
+								<button class="type-btn benches" data-type="benches">
+									Benches
+								</button>
+								<button class="type-btn jardinieres" data-type="jardinieres">
+									Jardinieres
+								</button>
+								<button
+									class="type-btn jardinieres_single"
+									data-type="jardinieres_single">
+									Single Jardiniere
+								</button>
+							</div>
+
+							<div class="action-buttons">
+								<button class="btn btn-success" id="saveClassificationBtn">
+									💾 Save Classification
+								</button>
+								<button class="btn btn-danger" id="splitClusterBtn">
+									✂️ Split Cluster
+								</button>
+								<button class="btn btn-secondary" id="mergeClusterBtn">
+									🔗 Merge with Next
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="loading hidden" id="loading">
+			<div>Loading data...</div>
+		</div>
+
+		<script>
+			// Initialize maps
+			const componentsMap = L.map("componentsMap", {
+				maxZoom: 26,
+				minZoom: 1,
+			}).setView([48.8566, 2.3522], 12)
+
+			const piecesMap = L.map("piecesMap", {
+				maxZoom: 26,
+				minZoom: 1,
+			}).setView([48.8566, 2.3522], 12)
+
+			// Add tiles to both maps
+			const tileLayer1 = L.tileLayer(
+				"https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+				{
+					attribution: "© OpenStreetMap contributors © CARTO",
+					subdomains: "abcd",
+					maxZoom: 26,
+				}
+			).addTo(componentsMap)
+
+			const tileLayer2 = L.tileLayer(
+				"https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+				{
+					attribution: "© OpenStreetMap contributors © CARTO",
+					subdomains: "abcd",
+					maxZoom: 26,
+				}
+			).addTo(piecesMap)
+
+			// Layer groups
+			let componentsLayer = L.layerGroup().addTo(componentsMap)
+			let piecesLayer = L.layerGroup().addTo(piecesMap)
+
+			// State management
+			let currentPieces = []
+			let currentComponents = []
+			let selectedPiece = null
+			let classifications = new Map() // Store manual classifications
+
+			// Sync map views
+			function syncMaps() {
+				componentsMap.on("moveend zoomend", () => {
+					const center = componentsMap.getCenter()
+					const zoom = componentsMap.getZoom()
+					piecesMap.setView(center, zoom)
+					updateSyncIndicator("componentSync", true)
+				})
+
+				piecesMap.on("moveend zoomend", () => {
+					const center = piecesMap.getCenter()
+					const zoom = piecesMap.getZoom()
+					componentsMap.setView(center, zoom)
+					updateSyncIndicator("pieceSync", true)
+				})
+			}
+
+			function updateSyncIndicator(elementId, synced) {
+				const indicator = document.getElementById(elementId)
+				indicator.textContent = synced ? "Synced" : "Not Synced"
+				indicator.className = `sync-indicator ${synced ? "synced" : ""}`
+			}
+
+			// Color functions
+			function getComponentColor(length) {
+				if (length >= 4 && length <= 10) return "#e74c3c" // Red for potential benches
+				if (length >= 2 && length < 5) return "#f39c12" // Orange for medium
+				if (length >= 0.5 && length < 2) return "#3498db" // Blue for short
+				if (length < 0.5) return "#95a5a6" // Gray for tiny
+				return "#9b59b6" // Purple for large
+			}
+
+			function getPieceColor(type) {
+				switch (type) {
+					case "poubelles":
+						return "#e74c3c" // Red
+					case "benches":
+						return "#2ecc71" // Green
+					case "jardinieres":
+						return "#f39c12" // Orange
+					case "jardinieres_single":
+						return "#9b59b6" // Purple
+					default:
+						return "#95a5a6" // Gray
+				}
+			}
+
+			// Load components data
+			async function loadComponents(arrondissement, typeFilter) {
+				const params = new URLSearchParams()
+				if (arrondissement) params.append("arrondissement", arrondissement)
+				params.append("limit", "1000") // Limit for performance
+
+				const response = await fetch(`/api/furniture?${params}`)
+				const components = await response.json()
+
+				// Clear existing components
+				componentsLayer.clearLayers()
+				currentComponents = components
+
+				// Add components to map
+				components.forEach((component) => {
+					try {
+						const geoShape = JSON.parse(component.geo_shape)
+						const coordinates = geoShape.geometry.coordinates
+						const latLngs = coordinates.map(([lng, lat]) => [lat, lng])
+
+						const color = getComponentColor(component.total_length_m)
+						const polyline = L.polyline(latLngs, {
+							color: color,
+							weight: 2,
+							opacity: 0.8,
+						})
+
+						polyline.bindPopup(`
+							<strong>Component ID:</strong> ${component.objectid}<br>
+							<strong>Length:</strong> ${component.total_length_m.toFixed(2)}m<br>
+							<strong>Points:</strong> ${component.point_count}<br>
+							<strong>Aspect Ratio:</strong> ${component.aspect_ratio.toFixed(2)}
+						`)
+
+						componentsLayer.addLayer(polyline)
+					} catch (error) {
+						console.warn(
+							"Error processing component:",
+							component.objectid,
+							error
+						)
+					}
+				})
+
+				console.log(`Loaded ${components.length} components`)
+			}
+
+			// Load pieces data
+			async function loadPieces(arrondissement, typeFilter) {
+				const params = new URLSearchParams()
+				if (arrondissement) params.append("arrondissement", arrondissement)
+				if (typeFilter) params.append("type", typeFilter)
+				params.append("limit", "500") // Limit for performance
+
+				const response = await fetch(`/api/pieces?${params}`)
+				const pieces = await response.json()
+
+				// Clear existing pieces
+				piecesLayer.clearLayers()
+				currentPieces = pieces
+
+				// Add pieces to map
+				pieces.forEach((piece) => {
+					try {
+						const color = getPieceColor(piece.estimated_type)
+
+						// Create bounding box
+						const bounds = [
+							[piece.min_latitude, piece.min_longitude],
+							[piece.max_latitude, piece.max_longitude],
+						]
+
+						const rectangle = L.rectangle(bounds, {
+							color: color,
+							weight: 2,
+							opacity: 0.8,
+							fillOpacity: 0.3,
+						})
+
+						rectangle.bindPopup(`
+							<strong>Piece ID:</strong> ${piece.piece_id}<br>
+							<strong>Type:</strong> ${piece.estimated_type}<br>
+							<strong>Components:</strong> ${piece.component_count}<br>
+							<strong>Length:</strong> ${piece.total_length_m.toFixed(2)}m<br>
+							<strong>Span:</strong> ${piece.max_span_m.toFixed(2)}m
+						`)
+
+						// Click handler for piece selection
+						rectangle.on("click", () => {
+							selectPiece(piece)
+						})
+
+						piecesLayer.addLayer(rectangle)
+					} catch (error) {
+						console.warn("Error processing piece:", piece.piece_id, error)
+					}
+				})
+
+				console.log(`Loaded ${pieces.length} pieces`)
+			}
+
+			// Select a piece for classification
+			function selectPiece(piece) {
+				selectedPiece = piece
+
+				// Update UI
+				document.getElementById("selectedPieceInfo").classList.remove("hidden")
+				document.getElementById("pieceId").textContent = piece.piece_id
+				document.getElementById("pieceType").textContent = piece.estimated_type
+				document.getElementById("pieceComponents").textContent =
+					piece.component_count
+				document.getElementById(
+					"pieceLength"
+				).textContent = `${piece.total_length_m.toFixed(2)}m`
+				document.getElementById(
+					"pieceSpan"
+				).textContent = `${piece.max_span_m.toFixed(2)}m`
+				document.getElementById("pieceComplexity").textContent =
+					piece.complexity_score.toFixed(2)
+
+				// Update classification buttons
+				document.querySelectorAll(".type-btn").forEach((btn) => {
+					btn.classList.remove("selected")
+					if (btn.dataset.type === piece.estimated_type) {
+						btn.classList.add("selected")
+					}
+				})
+
+				// Highlight the selected piece on both maps
+				highlightSelectedPiece(piece)
+			}
+
+			// Highlight selected piece and its components
+			async function highlightSelectedPiece(piece) {
+				// Get detailed piece data with components
+				const response = await fetch(`/api/pieces/${piece.piece_id}`)
+				const detailedPiece = await response.json()
+
+				// Highlight components on components map
+				componentsLayer.eachLayer((layer) => {
+					layer.setStyle({ weight: 2, opacity: 0.8 }) // Reset style
+				})
+
+				// Highlight piece components
+				if (detailedPiece.components) {
+					detailedPiece.components.forEach((component) => {
+						componentsLayer.eachLayer((layer) => {
+							if (
+								layer.getPopup() &&
+								layer.getPopup().getContent().includes(component.objectid)
+							) {
+								layer.setStyle({ weight: 4, opacity: 1.0 })
+							}
+						})
+					})
+				}
+
+				// Highlight piece on pieces map
+				piecesLayer.eachLayer((layer) => {
+					layer.setStyle({ weight: 2, opacity: 0.8, fillOpacity: 0.3 }) // Reset style
+				})
+
+				piecesLayer.eachLayer((layer) => {
+					if (
+						layer.getPopup() &&
+						layer.getPopup().getContent().includes(piece.piece_id)
+					) {
+						layer.setStyle({ weight: 4, opacity: 1.0, fillOpacity: 0.5 })
+					}
+				})
+
+				// Center both maps on the piece
+				const centerLat = (piece.min_latitude + piece.max_latitude) / 2
+				const centerLng = (piece.min_longitude + piece.max_longitude) / 2
+				const center = [centerLat, centerLng]
+
+				componentsMap.setView(center, 18)
+				piecesMap.setView(center, 18)
+			}
+
+			// Main load data function
+			async function loadData() {
+				const loading = document.getElementById("loading")
+				const loadBtn = document.getElementById("loadDataBtn")
+
+				loading.classList.remove("hidden")
+				loadBtn.disabled = true
+
+				try {
+					const arrondissement = document.getElementById(
+						"arrondissementSelect"
+					).value
+					const typeFilter = document.getElementById("pieceTypeFilter").value
+
+					if (!arrondissement) {
+						alert("Please select an arrondissement first")
+						return
+					}
+
+					// Load both components and pieces
+					await Promise.all([
+						loadComponents(arrondissement, typeFilter),
+						loadPieces(arrondissement, typeFilter),
+					])
+
+					// Fit maps to data
+					if (currentPieces.length > 0) {
+						const bounds = L.latLngBounds()
+						currentPieces.forEach((piece) => {
+							bounds.extend([piece.min_latitude, piece.min_longitude])
+							bounds.extend([piece.max_latitude, piece.max_longitude])
+						})
+						componentsMap.fitBounds(bounds, { padding: [20, 20] })
+						piecesMap.fitBounds(bounds, { padding: [20, 20] })
+					}
+				} catch (error) {
+					console.error("Error loading data:", error)
+					alert("Error loading data. Please try again.")
+				} finally {
+					loading.classList.add("hidden")
+					loadBtn.disabled = false
+				}
+			}
+
+			// Clear data
+			function clearData() {
+				componentsLayer.clearLayers()
+				piecesLayer.clearLayers()
+				currentPieces = []
+				currentComponents = []
+				selectedPiece = null
+				document.getElementById("selectedPieceInfo").classList.add("hidden")
+			}
+
+			// Classification functions
+			function setClassification(type) {
+				if (!selectedPiece) return
+
+				// Update UI
+				document.querySelectorAll(".type-btn").forEach((btn) => {
+					btn.classList.remove("selected")
+				})
+				document
+					.querySelector(`[data-type="${type}"]`)
+					.classList.add("selected")
+
+				// Store classification
+				classifications.set(selectedPiece.piece_id, {
+					original_type: selectedPiece.estimated_type,
+					manual_type: type,
+					timestamp: new Date().toISOString(),
+					piece_data: selectedPiece,
+				})
+
+				console.log(`Classified ${selectedPiece.piece_id} as ${type}`)
+			}
+
+			// Save classification to server
+			async function saveClassification() {
+				if (!selectedPiece) {
+					alert("No piece selected")
+					return
+				}
+
+				const selectedType =
+					document.querySelector(".type-btn.selected")?.dataset.type
+				if (!selectedType) {
+					alert("Please select a classification type")
+					return
+				}
+
+				try {
+					// Save to server
+					const response = await fetch("/api/classifications", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({
+							piece_id: selectedPiece.piece_id,
+							original_type: selectedPiece.estimated_type,
+							manual_type: selectedType,
+							confidence: 5,
+							notes: "",
+						}),
+					})
+
+					if (!response.ok) {
+						throw new Error("Failed to save classification")
+					}
+
+					const result = await response.json()
+					console.log("Classification saved:", result)
+
+					// Update local storage
+					setClassification(selectedType)
+
+					// Show success message
+					const saveBtn = document.getElementById("saveClassificationBtn")
+					const originalText = saveBtn.textContent
+					saveBtn.textContent = "✅ Saved!"
+					saveBtn.style.background = "#27ae60"
+
+					setTimeout(() => {
+						saveBtn.textContent = originalText
+						saveBtn.style.background = ""
+					}, 1500)
+
+					// Move to next piece
+					const currentIndex = currentPieces.findIndex(
+						(p) => p.piece_id === selectedPiece.piece_id
+					)
+					if (currentIndex < currentPieces.length - 1) {
+						selectPiece(currentPieces[currentIndex + 1])
+					} else {
+						alert("All pieces in this view have been processed!")
+					}
+				} catch (error) {
+					console.error("Error saving classification:", error)
+					alert("Failed to save classification. Please try again.")
+				}
+			}
+
+			// Export training data from server
+			async function exportTrainingData() {
+				try {
+					const response = await fetch("/api/training-data")
+					if (!response.ok) {
+						throw new Error("Failed to fetch training data")
+					}
+
+					const data = await response.json()
+
+					// Create and download file
+					const blob = new Blob([JSON.stringify(data, null, 2)], {
+						type: "application/json",
+					})
+					const url = URL.createObjectURL(blob)
+					const a = document.createElement("a")
+					a.href = url
+					a.download = `training_data_${
+						new Date().toISOString().split("T")[0]
+					}.json`
+					a.click()
+					URL.revokeObjectURL(url)
+
+					alert(
+						`Exported ${data.count} classified furniture pieces for training!`
+					)
+				} catch (error) {
+					console.error("Error exporting training data:", error)
+					alert("Failed to export training data. Please try again.")
+				}
+			}
+
+			// Event listeners
+			document.getElementById("loadDataBtn").addEventListener("click", loadData)
+			document
+				.getElementById("clearDataBtn")
+				.addEventListener("click", clearData)
+			document
+				.getElementById("saveClassificationBtn")
+				.addEventListener("click", saveClassification)
+			document
+				.getElementById("exportBtn")
+				.addEventListener("click", exportTrainingData)
+
+			// Classification button listeners
+			document.querySelectorAll(".type-btn").forEach((btn) => {
+				btn.addEventListener("click", () => {
+					setClassification(btn.dataset.type)
+				})
+			})
+
+			// Toggle map visibility
+			document
+				.getElementById("toggleComponents")
+				.addEventListener("click", (e) => {
+					const map = document.getElementById("componentsMap")
+					if (map.style.display === "none") {
+						map.style.display = "block"
+						e.target.textContent = "Hide Components"
+					} else {
+						map.style.display = "none"
+						e.target.textContent = "Show Components"
+					}
+				})
+
+			document.getElementById("togglePieces").addEventListener("click", (e) => {
+				const map = document.getElementById("piecesMap")
+				if (map.style.display === "none") {
+					map.style.display = "block"
+					e.target.textContent = "Hide Pieces"
+				} else {
+					map.style.display = "none"
+					e.target.textContent = "Show Pieces"
+				}
+			})
+
+			// Initialize
+			syncMaps()
+
+			// Add keyboard shortcuts
+			document.addEventListener("keydown", (e) => {
+				if (!selectedPiece) return
+
+				switch (e.key) {
+					case "1":
+						setClassification("poubelles")
+						break
+					case "2":
+						setClassification("benches")
+						break
+					case "3":
+						setClassification("jardinieres")
+						break
+					case "4":
+						setClassification("jardinieres_single")
+						break
+					case "s":
+						saveClassification()
+						break
+					case "n": // Next piece
+						const currentIndex = currentPieces.findIndex(
+							(p) => p.piece_id === selectedPiece.piece_id
+						)
+						if (currentIndex < currentPieces.length - 1) {
+							selectPiece(currentPieces[currentIndex + 1])
+						}
+						break
+				}
+			})
+
+			console.log("Manual Classification Interface initialized")
+			console.log(
+				"Keyboard shortcuts: 1=Poubelles, 2=Benches, 3=Jardinieres, 4=Single Jardiniere, S=Save, N=Next"
+			)
+		</script>
+	</body>
+</html>

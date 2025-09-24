@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Street Furniture Geolocations - OusPoser</title>
+		<link
+			rel="stylesheet"
+			href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+			integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+			crossorigin="" />
+		<script
+			src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+			integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+			crossorigin=""></script>
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
+			}
+
+			body {
+				font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+					sans-serif;
+				background: #f5f5f5;
+				height: 100vh;
+				display: flex;
+				flex-direction: column;
+			}
+
+			.header {
+				background: white;
+				padding: 1rem;
+				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+				z-index: 1000;
+			}
+
+			.header h1 {
+				color: #2c3e50;
+				margin-bottom: 0.5rem;
+			}
+
+			.header p {
+				color: #7f8c8d;
+				font-size: 0.9rem;
+			}
+
+			.main-container {
+				display: flex;
+				flex: 1;
+				gap: 1rem;
+				padding: 1rem;
+				overflow: hidden;
+			}
+
+			.map-container {
+				flex: 1;
+				position: relative;
+				background: white;
+				border-radius: 8px;
+				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+				overflow: hidden;
+			}
+
+			.map-header {
+				background: #34495e;
+				color: white;
+				padding: 0.75rem 1rem;
+				font-weight: 600;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+
+			.map {
+				height: calc(100% - 60px);
+				width: 100%;
+			}
+
+			.sidebar {
+				width: 350px;
+				background: white;
+				border-radius: 8px;
+				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+				display: flex;
+				flex-direction: column;
+				overflow: hidden;
+			}
+
+			.sidebar-header {
+				background: #2c3e50;
+				color: white;
+				padding: 1rem;
+			}
+
+			.sidebar-content {
+				flex: 1;
+				overflow-y: auto;
+				padding: 1rem;
+			}
+
+			.controls {
+				display: flex;
+				flex-direction: column;
+				gap: 1rem;
+				margin-bottom: 1.5rem;
+			}
+
+			.control-group {
+				display: flex;
+				flex-direction: column;
+				gap: 0.5rem;
+			}
+
+			.control-group label {
+				font-weight: 600;
+				color: #2c3e50;
+				font-size: 0.9rem;
+			}
+
+			.control-group select {
+				padding: 0.5rem;
+				border: 1px solid #bdc3c7;
+				border-radius: 4px;
+				font-size: 0.9rem;
+			}
+
+			.btn {
+				padding: 0.75rem 1rem;
+				border: none;
+				border-radius: 4px;
+				cursor: pointer;
+				font-weight: 600;
+				transition: background-color 0.2s;
+			}
+
+			.btn-primary {
+				background: #3498db;
+				color: white;
+			}
+
+			.btn-primary:hover {
+				background: #2980b9;
+			}
+
+			.btn-secondary {
+				background: #95a5a6;
+				color: white;
+			}
+
+			.btn-secondary:hover {
+				background: #7f8c8d;
+			}
+
+			.btn-success {
+				background: #27ae60;
+				color: white;
+			}
+
+			.btn-success:hover {
+				background: #229954;
+			}
+
+			.stats-panel {
+				background: #ecf0f1;
+				padding: 1rem;
+				border-radius: 4px;
+				margin-bottom: 1rem;
+			}
+
+			.stats-panel h3 {
+				color: #2c3e50;
+				margin-bottom: 0.5rem;
+			}
+
+			.stat-item {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				padding: 0.25rem 0;
+				border-bottom: 1px solid #bdc3c7;
+				font-size: 0.9rem;
+			}
+
+			.stat-item:last-child {
+				border-bottom: none;
+			}
+
+			.stat-value {
+				font-weight: 600;
+				color: #2c3e50;
+			}
+
+			.legend {
+				background: #f8f9fa;
+				padding: 1rem;
+				border-radius: 4px;
+				margin-bottom: 1rem;
+			}
+
+			.legend h4 {
+				margin-bottom: 0.5rem;
+				color: #2c3e50;
+			}
+
+			.legend-item {
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+				margin-bottom: 0.25rem;
+				font-size: 0.8rem;
+			}
+
+			.legend-marker {
+				width: 12px;
+				height: 12px;
+				border-radius: 50%;
+				border: 2px solid white;
+				box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+			}
+
+			.loading {
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%);
+				background: rgba(255, 255, 255, 0.9);
+				padding: 1rem;
+				border-radius: 4px;
+				z-index: 1000;
+			}
+
+			.hidden {
+				display: none !important;
+			}
+
+			.filter-controls {
+				background: #e8f4fd;
+				padding: 1rem;
+				border-radius: 4px;
+				margin-bottom: 1rem;
+			}
+
+			.filter-controls h4 {
+				margin-bottom: 0.5rem;
+				color: #2c3e50;
+			}
+
+			.checkbox-group {
+				display: flex;
+				flex-direction: column;
+				gap: 0.25rem;
+			}
+
+			.checkbox-item {
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+				font-size: 0.9rem;
+			}
+
+			.checkbox-item input[type="checkbox"] {
+				margin: 0;
+			}
+
+			.orientation-info {
+				background: #fff3cd;
+				border: 1px solid #ffeaa7;
+				padding: 0.75rem;
+				border-radius: 4px;
+				margin-bottom: 1rem;
+				font-size: 0.8rem;
+			}
+
+			.orientation-info h4 {
+				margin-bottom: 0.5rem;
+				color: #856404;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="header">
+			<h1>📍 Street Furniture Geolocations</h1>
+			<p>
+				Precise locations of classified street furniture based on strict pattern analysis. Focus on actual positions rather than drawing details.
+			</p>
+		</div>
+
+		<div class="main-container">
+			<div class="map-container">
+				<div class="map-header">
+					<span>Furniture Locations</span>
+					<div id="mapInfo">No data loaded</div>
+				</div>
+				<div id="geoMap" class="map"></div>
+			</div>
+
+			<div class="sidebar">
+				<div class="sidebar-header">
+					<h2>Geolocation Analysis</h2>
+				</div>
+				<div class="sidebar-content">
+					<div class="controls">
+						<div class="control-group">
+							<label for="arrondissementSelect">Arrondissement:</label>
+							<select id="arrondissementSelect">
+								<option value="">Select Arrondissement</option>
+								<option value="9">9e (Test Data)</option>
+								<option value="1">1er</option>
+								<option value="2">2e</option>
+								<option value="3">3e</option>
+								<option value="4">4e</option>
+								<option value="5">5e</option>
+								<option value="6">6e</option>
+								<option value="7">7e</option>
+								<option value="8">8e</option>
+								<option value="10">10e</option>
+								<option value="11">11e</option>
+								<option value="12">12e</option>
+								<option value="13">13e</option>
+								<option value="14">14e</option>
+								<option value="15">15e</option>
+								<option value="16">16e</option>
+								<option value="17">17e</option>
+								<option value="18">18e</option>
+								<option value="19">19e</option>
+								<option value="20">20e</option>
+							</select>
+						</div>
+
+						<div class="control-group">
+							<label for="classificationMethod">Classification Method:</label>
+							<select id="classificationMethod">
+								<option value="strict">Strict Pattern-Based</option>
+								<option value="improved">Improved Clustering</option>
+								<option value="manual">Manual Examples</option>
+							</select>
+						</div>
+
+						<button class="btn btn-primary" id="loadDataBtn">Load Locations</button>
+						<button class="btn btn-secondary" id="clearDataBtn">Clear Map</button>
+					</div>
+
+					<div class="filter-controls">
+						<h4>Show Types:</h4>
+						<div class="checkbox-group">
+							<div class="checkbox-item">
+								<input type="checkbox" id="showPoubelles" checked>
+								<label for="showPoubelles">🗑️ Poubelles</label>
+							</div>
+							<div class="checkbox-item">
+								<input type="checkbox" id="showSingleBenches" checked>
+								<label for="showSingleBenches">🪑 Single Benches</label>
+							</div>
+							<div class="checkbox-item">
+								<input type="checkbox" id="showFiveBenches" checked>
+								<label for="showFiveBenches">🪑 5-Component Benches</label>
+							</div>
+							<div class="checkbox-item">
+								<input type="checkbox" id="showSixBenches" checked>
+								<label for="showSixBenches">🪑 6-Component Benches</label>
+							</div>
+						</div>
+					</div>
+
+					<div class="orientation-info">
+						<h4>Bench Orientation</h4>
+						<p>Bench markers show orientation as calculated from component coordinates. The arrow points in the direction of the bench's main axis.</p>
+					</div>
+
+					<div class="stats-panel">
+						<h3>Classification Stats</h3>
+						<div id="statsContent">
+							<p style="color: #7f8c8d; font-style: italic;">Load data to see statistics</p>
+						</div>
+					</div>
+
+					<div class="legend">
+						<h4>Marker Types</h4>
+						<div class="legend-item">
+							<div class="legend-marker" style="background: #e74c3c"></div>
+							<span>Poubelles (trash cans)</span>
+						</div>
+						<div class="legend-item">
+							<div class="legend-marker" style="background: #2ecc71"></div>
+							<span>Single Component Benches</span>
+						</div>
+						<div class="legend-item">
+							<div class="legend-marker" style="background: #3498db"></div>
+							<span>5-Component Benches</span>
+						</div>
+						<div class="legend-item">
+							<div class="legend-marker" style="background: #9b59b6"></div>
+							<span>6-Component Benches</span>
+						</div>
+					</div>
+
+					<button class="btn btn-success" id="exportBtn" style="width: 100%;">
+						📥 Export Geolocations
+					</button>
+				</div>
+			</div>
+		</div>
+
+		<div class="loading hidden" id="loading">
+			<div>Loading furniture locations...</div>
+		</div>
+
+		<script>
+			// Initialize map
+			const map = L.map("geoMap", {
+				maxZoom: 26,
+				minZoom: 1,
+			}).setView([48.8566, 2.3522], 12)
+
+			// Add tiles
+			L.tileLayer(
+				"https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+				{
+					attribution: "© OpenStreetMap contributors © CARTO",
+					subdomains: "abcd",
+					maxZoom: 26,
+				}
+			).addTo(map)
+
+			// Layer groups for different types
+			const layers = {
+				poubelles: L.layerGroup().addTo(map),
+				singleBenches: L.layerGroup().addTo(map),
+				fiveBenches: L.layerGroup().addTo(map),
+				sixBenches: L.layerGroup().addTo(map)
+			}
+
+			let currentData = null
+
+			// Create oriented marker for benches
+			function createBenchMarker(location, orientation, color, type) {
+				const marker = L.circleMarker([location.latitude, location.longitude], {
+					radius: 6,
+					fillColor: color,
+					color: 'white',
+					weight: 2,
+					opacity: 1,
+					fillOpacity: 0.8
+				})
+
+				// Add orientation indicator if available
+				if (orientation !== null && orientation !== undefined) {
+					const orientationLine = L.polyline([
+						[location.latitude, location.longitude],
+						[
+							location.latitude + 0.00005 * Math.cos(orientation * Math.PI / 180),
+							location.longitude + 0.00005 * Math.sin(orientation * Math.PI / 180)
+						]
+					], {
+						color: color,
+						weight: 3,
+						opacity: 0.8
+					})
+
+					marker.orientationLine = orientationLine
+				}
+
+				return marker
+			}
+
+			// Load geolocation data
+			async function loadGeolocations() {
+				const loading = document.getElementById("loading")
+				const loadBtn = document.getElementById("loadDataBtn")
+				const arrondissement = document.getElementById("arrondissementSelect").value
+				const method = document.getElementById("classificationMethod").value
+
+				if (!arrondissement) {
+					alert("Please select an arrondissement first")
+					return
+				}
+
+				loading.classList.remove("hidden")
+				loadBtn.disabled = true
+
+				try {
+					let data
+					
+					if (method === 'manual') {
+						// Load manual clusters
+						const response = await fetch('/api/manual-clusters')
+						const manualClusters = await response.json()
+						
+						// Filter by arrondissement and convert to geolocation format
+						data = convertManualClustersToGeolocations(manualClusters.filter(c => 
+							c.arrondissement == arrondissement
+						))
+					} else if (method === 'strict') {
+						// Load strict classification results (would need API endpoint)
+						alert('Strict classification API endpoint not yet implemented')
+						return
+					} else {
+						// Load improved clustering results
+						const params = new URLSearchParams()
+						params.append("arrondissement", arrondissement)
+						params.append("limit", "1000")
+
+						const response = await fetch(`/api/pieces?${params}`)
+						data = await response.json()
+					}
+
+					currentData = data
+					displayGeolocations(data)
+					updateStats(data)
+
+				} catch (error) {
+					console.error("Error loading geolocations:", error)
+					alert("Error loading geolocations. Please try again.")
+				} finally {
+					loading.classList.add("hidden")
+					loadBtn.disabled = false
+				}
+			}
+
+			// Convert manual clusters to geolocation format
+			function convertManualClustersToGeolocations(manualClusters) {
+				// This would need to fetch component details and calculate centroids
+				// For now, return empty array
+				return {
+					poubelles: [],
+					single_benches: [],
+					five_component_benches: [],
+					six_component_benches: []
+				}
+			}
+
+			// Display geolocations on map
+			function displayGeolocations(data) {
+				// Clear existing layers
+				Object.values(layers).forEach(layer => layer.clearLayers())
+
+				let totalMarkers = 0
+
+				// Add poubelles
+				if (data.poubelles) {
+					data.poubelles.forEach(item => {
+						if (document.getElementById('showPoubelles').checked) {
+							const marker = L.circleMarker([item.center_latitude, item.center_longitude], {
+								radius: 4,
+								fillColor: '#e74c3c',
+								color: 'white',
+								weight: 2,
+								opacity: 1,
+								fillOpacity: 0.8
+							})
+
+							marker.bindPopup(`
+								<strong>Poubelle</strong><br>
+								<strong>Location:</strong> ${item.center_latitude.toFixed(6)}, ${item.center_longitude.toFixed(6)}<br>
+								<strong>Components:</strong> ${item.component_count}<br>
+								<strong>Length:</strong> ${item.total_length_m?.toFixed(2)}m
+							`)
+
+							layers.poubelles.addLayer(marker)
+							totalMarkers++
+						}
+					})
+				}
+
+				// Add single benches
+				if (data.single_benches) {
+					data.single_benches.forEach(item => {
+						if (document.getElementById('showSingleBenches').checked) {
+							const marker = createBenchMarker(
+								{ latitude: item.center_latitude, longitude: item.center_longitude },
+								item.orientation,
+								'#2ecc71',
+								'single'
+							)
+
+							marker.bindPopup(`
+								<strong>Single Bench</strong><br>
+								<strong>Location:</strong> ${item.center_latitude.toFixed(6)}, ${item.center_longitude.toFixed(6)}<br>
+								<strong>Components:</strong> ${item.component_count}<br>
+								<strong>Length:</strong> ${item.total_length_m?.toFixed(2)}m<br>
+								${item.orientation ? `<strong>Orientation:</strong> ${item.orientation.toFixed(1)}°` : ''}
+							`)
+
+							layers.singleBenches.addLayer(marker)
+							if (marker.orientationLine) {
+								layers.singleBenches.addLayer(marker.orientationLine)
+							}
+							totalMarkers++
+						}
+					})
+				}
+
+				// Add 5-component benches
+				if (data.five_component_benches) {
+					data.five_component_benches.forEach(item => {
+						if (document.getElementById('showFiveBenches').checked) {
+							const marker = createBenchMarker(
+								{ latitude: item.center_latitude, longitude: item.center_longitude },
+								item.orientation,
+								'#3498db',
+								'five'
+							)
+
+							marker.bindPopup(`
+								<strong>5-Component Bench</strong><br>
+								<strong>Location:</strong> ${item.center_latitude.toFixed(6)}, ${item.center_longitude.toFixed(6)}<br>
+								<strong>Components:</strong> ${item.component_count}<br>
+								<strong>Total Length:</strong> ${item.total_length_m?.toFixed(2)}m<br>
+								<strong>Span:</strong> ${item.max_span_m?.toFixed(2)}m<br>
+								${item.orientation ? `<strong>Orientation:</strong> ${item.orientation.toFixed(1)}°` : ''}
+							`)
+
+							layers.fiveBenches.addLayer(marker)
+							if (marker.orientationLine) {
+								layers.fiveBenches.addLayer(marker.orientationLine)
+							}
+							totalMarkers++
+						}
+					})
+				}
+
+				// Add 6-component benches
+				if (data.six_component_benches) {
+					data.six_component_benches.forEach(item => {
+						if (document.getElementById('showSixBenches').checked) {
+							const marker = createBenchMarker(
+								{ latitude: item.center_latitude, longitude: item.center_longitude },
+								item.orientation,
+								'#9b59b6',
+								'six'
+							)
+
+							marker.bindPopup(`
+								<strong>6-Component Bench</strong><br>
+								<strong>Location:</strong> ${item.center_latitude.toFixed(6)}, ${item.center_longitude.toFixed(6)}<br>
+								<strong>Components:</strong> ${item.component_count}<br>
+								<strong>Total Length:</strong> ${item.total_length_m?.toFixed(2)}m<br>
+								<strong>Span:</strong> ${item.max_span_m?.toFixed(2)}m<br>
+								${item.orientation ? `<strong>Orientation:</strong> ${item.orientation.toFixed(1)}°` : ''}
+							`)
+
+							layers.sixBenches.addLayer(marker)
+							if (marker.orientationLine) {
+								layers.sixBenches.addLayer(marker.orientationLine)
+							}
+							totalMarkers++
+						}
+					})
+				}
+
+				// Fit map to data
+				if (totalMarkers > 0) {
+					const group = new L.featureGroup(Object.values(layers))
+					map.fitBounds(group.getBounds(), { padding: [20, 20] })
+				}
+
+				document.getElementById('mapInfo').textContent = `${totalMarkers} locations displayed`
+			}
+
+			// Update statistics
+			function updateStats(data) {
+				const statsContent = document.getElementById('statsContent')
+				
+				const poubelles = data.poubelles?.length || 0
+				const singleBenches = data.single_benches?.length || 0
+				const fiveBenches = data.five_component_benches?.length || 0
+				const sixBenches = data.six_component_benches?.length || 0
+				const total = poubelles + singleBenches + fiveBenches + sixBenches
+
+				statsContent.innerHTML = `
+					<div class="stat-item">
+						<span>Total Locations:</span>
+						<span class="stat-value">${total}</span>
+					</div>
+					<div class="stat-item">
+						<span>Poubelles:</span>
+						<span class="stat-value">${poubelles}</span>
+					</div>
+					<div class="stat-item">
+						<span>Single Benches:</span>
+						<span class="stat-value">${singleBenches}</span>
+					</div>
+					<div class="stat-item">
+						<span>5-Component Benches:</span>
+						<span class="stat-value">${fiveBenches}</span>
+					</div>
+					<div class="stat-item">
+						<span>6-Component Benches:</span>
+						<span class="stat-value">${sixBenches}</span>
+					</div>
+				`
+			}
+
+			// Clear map
+			function clearMap() {
+				Object.values(layers).forEach(layer => layer.clearLayers())
+				currentData = null
+				document.getElementById('mapInfo').textContent = 'No data loaded'
+				document.getElementById('statsContent').innerHTML = '<p style="color: #7f8c8d; font-style: italic;">Load data to see statistics</p>'
+			}
+
+			// Export geolocations
+			function exportGeolocations() {
+				if (!currentData) {
+					alert('No data to export. Please load data first.')
+					return
+				}
+
+				const blob = new Blob([JSON.stringify(currentData, null, 2)], {
+					type: "application/json",
+				})
+				const url = URL.createObjectURL(blob)
+				const a = document.createElement("a")
+				a.href = url
+				a.download = `geolocations_${new Date().toISOString().split("T")[0]}.json`
+				a.click()
+				URL.revokeObjectURL(url)
+			}
+
+			// Event listeners
+			document.getElementById("loadDataBtn").addEventListener("click", loadGeolocations)
+			document.getElementById("clearDataBtn").addEventListener("click", clearMap)
+			document.getElementById("exportBtn").addEventListener("click", exportGeolocations)
+
+			// Filter checkboxes
+			document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+				checkbox.addEventListener('change', () => {
+					if (currentData) {
+						displayGeolocations(currentData)
+					}
+				})
+			})
+
+			console.log("Geolocation Map Interface initialized")
+		</script>
+	</body>
+</html>

@@ -1,0 +1,33 @@
+{
+	"name": "ousposer",
+	"version": "1.0.0",
+	"description": "Production-ready Paris street furniture detection system with 7,858 benches and 26,879 trash cans detected",
+	"main": "server.js",
+	"scripts": {
+		"start": "node server-postgresql.js",
+		"setup-db": "node scripts/setup-postgresql.js",
+		"create-sqlite": "node scripts/create-database.js",
+		"detect": "node src/run-enhanced-detection.js all",
+		"detect-test": "node src/run-enhanced-detection.js test",
+		"stats": "node src/run-enhanced-detection.js stats",
+		"import": "node scripts/import-to-postgresql.js",
+		"validate": "node scripts/validate-results.js",
+		"dev": "node server-postgresql.js"
+	},
+	"dependencies": {
+		"express": "^5.1.0",
+		"sqlite3": "^5.1.7",
+		"pg": "^8.11.3"
+	},
+	"devDependencies": {},
+	"keywords": [
+		"paris",
+		"street-furniture",
+		"benches",
+		"poubelles",
+		"geometric-analysis",
+		"postgis"
+	],
+	"author": "OusPoser Team",
+	"license": "MIT"
+}

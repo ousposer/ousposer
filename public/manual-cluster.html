@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Manual Clustering Interface - OusPoser</title>
+		<link
+			rel="stylesheet"
+			href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+			integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+			crossorigin="" />
+		<script
+			src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+			integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+			crossorigin=""></script>
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
+			}
+
+			body {
+				font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+					sans-serif;
+				background: #f5f5f5;
+				height: 100vh;
+				display: flex;
+				flex-direction: column;
+			}
+
+			.header {
+				background: white;
+				padding: 1rem;
+				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+				z-index: 1000;
+			}
+
+			.header h1 {
+				color: #2c3e50;
+				margin-bottom: 0.5rem;
+			}
+
+			.header p {
+				color: #7f8c8d;
+				font-size: 0.9rem;
+			}
+
+			.main-container {
+				display: flex;
+				flex: 1;
+				gap: 1rem;
+				padding: 1rem;
+				overflow: hidden;
+			}
+
+			.map-container {
+				flex: 1;
+				position: relative;
+				background: white;
+				border-radius: 8px;
+				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+				overflow: hidden;
+			}
+
+			.map-header {
+				background: #34495e;
+				color: white;
+				padding: 0.75rem 1rem;
+				font-weight: 600;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+
+			.selection-info {
+				background: rgba(52, 152, 219, 0.1);
+				border: 2px solid #3498db;
+				padding: 0.5rem;
+				border-radius: 4px;
+				font-size: 0.9rem;
+			}
+
+			.map {
+				height: calc(100% - 60px);
+				width: 100%;
+			}
+
+			.sidebar {
+				width: 400px;
+				background: white;
+				border-radius: 8px;
+				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+				display: flex;
+				flex-direction: column;
+				overflow: hidden;
+			}
+
+			.sidebar-header {
+				background: #2c3e50;
+				color: white;
+				padding: 1rem;
+			}
+
+			.sidebar-content {
+				flex: 1;
+				overflow-y: auto;
+				padding: 1rem;
+			}
+
+			.controls {
+				display: flex;
+				flex-direction: column;
+				gap: 1rem;
+				margin-bottom: 1.5rem;
+			}
+
+			.control-group {
+				display: flex;
+				flex-direction: column;
+				gap: 0.5rem;
+			}
+
+			.control-group label {
+				font-weight: 600;
+				color: #2c3e50;
+				font-size: 0.9rem;
+			}
+
+			.control-group select,
+			.control-group input {
+				padding: 0.5rem;
+				border: 1px solid #bdc3c7;
+				border-radius: 4px;
+				font-size: 0.9rem;
+			}
+
+			.btn {
+				padding: 0.75rem 1rem;
+				border: none;
+				border-radius: 4px;
+				cursor: pointer;
+				font-weight: 600;
+				transition: background-color 0.2s;
+			}
+
+			.btn-primary {
+				background: #3498db;
+				color: white;
+			}
+
+			.btn-primary:hover {
+				background: #2980b9;
+			}
+
+			.btn-secondary {
+				background: #95a5a6;
+				color: white;
+			}
+
+			.btn-secondary:hover {
+				background: #7f8c8d;
+			}
+
+			.btn-success {
+				background: #27ae60;
+				color: white;
+			}
+
+			.btn-success:hover {
+				background: #229954;
+			}
+
+			.btn-danger {
+				background: #e74c3c;
+				color: white;
+			}
+
+			.btn-danger:hover {
+				background: #c0392b;
+			}
+
+			.btn-warning {
+				background: #f39c12;
+				color: white;
+			}
+
+			.btn-warning:hover {
+				background: #e67e22;
+			}
+
+			.selection-panel {
+				background: #ecf0f1;
+				padding: 1rem;
+				border-radius: 4px;
+				margin-bottom: 1rem;
+			}
+
+			.selection-panel h3 {
+				color: #2c3e50;
+				margin-bottom: 0.5rem;
+			}
+
+			.selected-components {
+				max-height: 150px;
+				overflow-y: auto;
+				background: white;
+				border: 1px solid #bdc3c7;
+				border-radius: 4px;
+				padding: 0.5rem;
+				margin-bottom: 1rem;
+			}
+
+			.component-item {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				padding: 0.25rem 0;
+				border-bottom: 1px solid #ecf0f1;
+				font-size: 0.8rem;
+			}
+
+			.component-item:last-child {
+				border-bottom: none;
+			}
+
+			.remove-btn {
+				background: #e74c3c;
+				color: white;
+				border: none;
+				border-radius: 2px;
+				padding: 0.1rem 0.3rem;
+				cursor: pointer;
+				font-size: 0.7rem;
+			}
+
+			.classification-buttons {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 0.5rem;
+				margin-bottom: 1rem;
+			}
+
+			.type-btn {
+				padding: 0.75rem;
+				border: 2px solid transparent;
+				border-radius: 4px;
+				cursor: pointer;
+				font-weight: 600;
+				transition: all 0.2s;
+				text-align: center;
+			}
+
+			.type-btn.poubelles {
+				background: #e74c3c;
+				color: white;
+			}
+
+			.type-btn.benches {
+				background: #2ecc71;
+				color: white;
+			}
+
+			.type-btn.jardinieres {
+				background: #f39c12;
+				color: white;
+			}
+
+			.type-btn.selected {
+				border-color: #2c3e50;
+				transform: scale(1.05);
+			}
+
+			.training-examples {
+				background: #f8f9fa;
+				padding: 1rem;
+				border-radius: 4px;
+				margin-bottom: 1rem;
+			}
+
+			.training-examples h4 {
+				margin-bottom: 0.5rem;
+				color: #2c3e50;
+			}
+
+			.example-item {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				padding: 0.5rem;
+				background: white;
+				border-radius: 4px;
+				margin-bottom: 0.5rem;
+				font-size: 0.8rem;
+			}
+
+			.example-type {
+				font-weight: 600;
+				padding: 0.2rem 0.5rem;
+				border-radius: 3px;
+				color: white;
+			}
+
+			.example-type.poubelles {
+				background: #e74c3c;
+			}
+
+			.example-type.benches {
+				background: #2ecc71;
+			}
+
+			.example-type.jardinieres {
+				background: #f39c12;
+			}
+
+			.legend {
+				background: #f8f9fa;
+				padding: 1rem;
+				border-radius: 4px;
+				margin-bottom: 1rem;
+			}
+
+			.legend h4 {
+				margin-bottom: 0.5rem;
+				color: #2c3e50;
+			}
+
+			.legend-item {
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+				margin-bottom: 0.25rem;
+				font-size: 0.8rem;
+			}
+
+			.legend-color {
+				width: 16px;
+				height: 16px;
+				border-radius: 2px;
+			}
+
+			.loading {
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%);
+				background: rgba(255, 255, 255, 0.9);
+				padding: 1rem;
+				border-radius: 4px;
+				z-index: 1000;
+			}
+
+			.hidden {
+				display: none !important;
+			}
+
+			.component-selected {
+				stroke-width: 4 !important;
+				stroke: #3498db !important;
+				opacity: 1 !important;
+			}
+
+			.component-hover {
+				stroke-width: 3 !important;
+				opacity: 1 !important;
+			}
+
+			.instructions {
+				background: #e8f4fd;
+				border: 1px solid #3498db;
+				padding: 1rem;
+				border-radius: 4px;
+				margin-bottom: 1rem;
+			}
+
+			.instructions h4 {
+				color: #2c3e50;
+				margin-bottom: 0.5rem;
+			}
+
+			.instructions ol {
+				margin-left: 1.5rem;
+				font-size: 0.9rem;
+				color: #34495e;
+			}
+
+			.instructions li {
+				margin-bottom: 0.25rem;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="header">
+			<h1>🎯 Manual Clustering Interface</h1>
+			<p>
+				Select individual components to create furniture clusters. Click
+				components to select them, classify the group, and save as training
+				data.
+			</p>
+		</div>
+
+		<div class="main-container">
+			<div class="map-container">
+				<div class="map-header">
+					<span>Individual Components - Click to Select</span>
+					<div class="selection-info" id="selectionInfo">
+						No components selected
+					</div>
+				</div>
+				<div id="componentsMap" class="map"></div>
+			</div>
+
+			<div class="sidebar">
+				<div class="sidebar-header">
+					<h2>Manual Clustering</h2>
+				</div>
+				<div class="sidebar-content">
+					<div class="instructions">
+						<h4>How to Use:</h4>
+						<ol>
+							<li>Load an arrondissement</li>
+							<li>Click components that belong together</li>
+							<li>Choose furniture type</li>
+							<li>Save as training example</li>
+							<li>Repeat for more furniture pieces</li>
+						</ol>
+					</div>
+
+					<div class="controls">
+						<div class="control-group">
+							<label for="arrondissementSelect">Arrondissement:</label>
+							<select id="arrondissementSelect">
+								<option value="">Select Arrondissement</option>
+								<option value="9">9e (Test Data)</option>
+								<option value="1">1er</option>
+								<option value="2">2e</option>
+								<option value="3">3e</option>
+								<option value="4">4e</option>
+								<option value="5">5e</option>
+								<option value="6">6e</option>
+								<option value="7">7e</option>
+								<option value="8">8e</option>
+								<option value="10">10e</option>
+								<option value="11">11e</option>
+								<option value="12">12e</option>
+								<option value="13">13e</option>
+								<option value="14">14e</option>
+								<option value="15">15e</option>
+								<option value="16">16e</option>
+								<option value="17">17e</option>
+								<option value="18">18e</option>
+								<option value="19">19e</option>
+								<option value="20">20e</option>
+							</select>
+						</div>
+
+						<button class="btn btn-primary" id="loadDataBtn">
+							Load Components
+						</button>
+						<button class="btn btn-secondary" id="clearDataBtn">
+							Clear Map
+						</button>
+					</div>
+
+					<div class="selection-panel">
+						<h3>Selected Components (<span id="selectedCount">0</span>)</h3>
+						<div class="selected-components" id="selectedComponents">
+							<p style="color: #7f8c8d; font-style: italic">
+								Click components on the map to select them
+							</p>
+						</div>
+
+						<div class="classification-buttons">
+							<button class="type-btn poubelles" data-type="poubelles">
+								Poubelles
+							</button>
+							<button class="type-btn benches" data-type="benches">
+								Benches
+							</button>
+							<button class="type-btn jardinieres" data-type="jardinieres">
+								Jardinieres
+							</button>
+						</div>
+
+						<div class="control-group">
+							<label>Confidence (1–10)</label>
+							<input id="confidence" type="number" min="1" max="10" value="7" />
+						</div>
+						<div class="control-group">
+							<label>Notes</label>
+							<input id="notes" type="text" placeholder="Any observation…" />
+						</div>
+						<button class="btn btn-success" id="saveClusterBtn" disabled>
+							💾 Save Training Example
+						</button>
+						<button class="btn btn-warning" id="clearSelectionBtn">
+							🗑️ Clear Selection
+						</button>
+					</div>
+
+					<div class="training-examples">
+						<h4>Training Examples (<span id="exampleCount">0</span>)</h4>
+						<div id="trainingExamples">
+							<p style="color: #7f8c8d; font-style: italic">
+								No examples created yet
+							</p>
+						</div>
+						<button
+							class="btn btn-success"
+							id="exportBtn"
+							style="width: 100%; margin-top: 0.5rem">
+							📥 Export Training Data
+						</button>
+						<button
+							class="btn btn-danger"
+							id="dropTableBtn"
+							style="width: 100%; margin-top: 0.5rem">
+							⚠️ Drop Manual Labels Table
+						</button>
+						<button
+							class="btn btn-secondary"
+							id="undoLastBtn"
+							style="width: 100%; margin-top: 0.5rem"
+							disabled>
+							↩️ Undo Last Save
+						</button>
+					</div>
+
+					<div class="legend">
+						<h4>Component Colors</h4>
+						<div class="legend-item">
+							<div class="legend-color" style="background: #e74c3c"></div>
+							<span>Potential Benches (4-10m)</span>
+						</div>
+						<div class="legend-item">
+							<div class="legend-color" style="background: #f39c12"></div>
+							<span>Medium Objects (2-5m)</span>
+						</div>
+						<div class="legend-item">
+							<div class="legend-color" style="background: #3498db"></div>
+							<span>Short Objects (0.5-2m)</span>
+						</div>
+						<div class="legend-item">
+							<div class="legend-color" style="background: #95a5a6"></div>
+							<span>Tiny Objects (0-0.5m)</span>
+						</div>
+						<div class="legend-item">
+							<div class="legend-color" style="background: #9b59b6"></div>
+							<span>Large Objects (10m+)</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="loading hidden" id="loading">
+			<div>Loading components...</div>
+		</div>
+
+		<script>
+			// Initialize map
+			const map = L.map("componentsMap", {
+				maxZoom: 26,
+				minZoom: 1,
+			}).setView([48.8566, 2.3522], 12)
+
+			// Add tiles
+			L.tileLayer(
+				"https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+				{
+					attribution: "© OpenStreetMap contributors © CARTO",
+					subdomains: "abcd",
+					maxZoom: 26,
+				}
+			).addTo(map)
+
+			// Layer group for components
+			let componentsLayer = L.layerGroup().addTo(map)
+
+			// State management
+			let currentComponents = []
+			let selectedComponents = new Set()
+			let componentLayers = new Map() // objectid -> layer mapping
+			let trainingExamples = []
+			let selectedType = null
+			const CLASSIFIED_PINK = "#ff69b4"
+			let classifiedIds = new Set()
+			let lastSavedExample = null
+
+			// Color function for components
+			function getComponentColor(length) {
+				if (length >= 4 && length <= 10) return "#e74c3c" // Red for potential benches
+				if (length >= 2 && length < 5) return "#f39c12" // Orange for medium
+				if (length >= 0.5 && length < 2) return "#3498db" // Blue for short
+				if (length < 0.5) return "#95a5a6" // Gray for tiny
+				return "#9b59b6" // Purple for large
+			}
+
+			// Load components data
+			async function loadComponents() {
+				const loading = document.getElementById("loading")
+				const loadBtn = document.getElementById("loadDataBtn")
+				const arrondissement = document.getElementById(
+					"arrondissementSelect"
+				).value
+
+				if (!arrondissement) {
+					alert("Please select an arrondissement first")
+					return
+				}
+
+				loading.classList.remove("hidden")
+				loadBtn.disabled = true
+
+				try {
+					const params = new URLSearchParams()
+					params.append("arrondissement", arrondissement)
+					params.append("limit", "2000") // Limit for performance
+
+					const response = await fetch(`/api/furniture?${params}`)
+					const components = await response.json()
+
+					// Load classified manual clusters to highlight components in pink
+					try {
+						const clsResp = await fetch(
+							`/api/manual-clusters?arrondissement=${arrondissement}&limit=5000`
+						)
+						if (clsResp.ok) {
+							const clusters = await clsResp.json()
+							classifiedIds = new Set(
+								clusters.flatMap((c) => c.component_ids || [])
+							)
+						} else {
+							classifiedIds = new Set()
+						}
+					} catch (e) {
+						classifiedIds = new Set()
+					}
+
+					// Clear existing data
+					componentsLayer.clearLayers()
+					componentLayers.clear()
+					currentComponents = components
+					clearSelection()
+
+					// Add components to map
+					components.forEach((component) => {
+						try {
+							const geoShape = JSON.parse(component.geo_shape)
+							const coordinates = geoShape.geometry.coordinates
+							const latLngs = coordinates.map(([lng, lat]) => [lat, lng])
+
+							const isClassified = classifiedIds.has(component.objectid)
+							const baseColor = getComponentColor(component.total_length_m)
+							const color = isClassified ? CLASSIFIED_PINK : baseColor
+							const polyline = L.polyline(latLngs, {
+								color: color,
+								weight: isClassified ? 3 : 2,
+								opacity: isClassified ? 1.0 : 0.7,
+								objectid: component.objectid,
+								classed: isClassified,
+							})
+
+							// Click handler for selection
+							polyline.on("click", (e) => {
+								e.originalEvent.stopPropagation()
+								toggleComponentSelection(component.objectid)
+							})
+
+							// Hover effects
+							polyline.on("mouseover", () => {
+								if (!selectedComponents.has(component.objectid)) {
+									polyline.setStyle({ weight: 3, opacity: 1.0 })
+								}
+							})
+
+							polyline.on("mouseout", () => {
+								if (!selectedComponents.has(component.objectid)) {
+									polyline.setStyle({ weight: 2, opacity: 0.7 })
+								}
+							})
+
+							polyline.bindPopup(`
+								<strong>Component ID:</strong> ${component.objectid}<br>
+								<strong>Length:</strong> ${component.total_length_m.toFixed(2)}m<br>
+								<strong>Points:</strong> ${component.point_count}<br>
+								<strong>Aspect Ratio:</strong> ${component.aspect_ratio.toFixed(2)}<br>
+								<button onclick="toggleComponentSelection(${
+									component.objectid
+								})" style="margin-top: 0.5rem; padding: 0.25rem 0.5rem; background: #3498db; color: white; border: none; border-radius: 3px; cursor: pointer;">
+									${selectedComponents.has(component.objectid) ? "Deselect" : "Select"}
+								</button>
+							`)
+
+							componentsLayer.addLayer(polyline)
+							componentLayers.set(component.objectid, polyline)
+						} catch (error) {
+							console.warn(
+								"Error processing component:",
+								component.objectid,
+								error
+							)
+						}
+					})
+
+					// Fit map to data
+					if (components.length > 0) {
+						let bounds = L.latLngBounds()
+						componentsLayer.eachLayer((layer) => {
+							bounds.extend(layer.getBounds())
+						})
+						map.fitBounds(bounds, { padding: [20, 20] })
+					}
+
+					console.log(`Loaded ${components.length} components`)
+				} catch (error) {
+					console.error("Error loading components:", error)
+					alert("Error loading components. Please try again.")
+				} finally {
+					loading.classList.add("hidden")
+					loadBtn.disabled = false
+				}
+			}
+
+			// Toggle component selection
+			function toggleComponentSelection(objectid) {
+				const layer = componentLayers.get(objectid)
+				if (!layer) return
+
+				if (selectedComponents.has(objectid)) {
+					// Deselect
+					selectedComponents.delete(objectid)
+					layer.setStyle({ weight: 2, opacity: 0.7 })
+				} else {
+					// Select
+					selectedComponents.add(objectid)
+					layer.setStyle({ weight: 4, opacity: 1.0, color: "#3498db" })
+				}
+
+				updateSelectionUI()
+			}
+
+			// Update selection UI
+			function updateSelectionUI() {
+				const count = selectedComponents.size
+				const countElement = document.getElementById("selectedCount")
+				const infoElement = document.getElementById("selectionInfo")
+				const componentsElement = document.getElementById("selectedComponents")
+				const saveBtn = document.getElementById("saveClusterBtn")
+
+				countElement.textContent = count
+				infoElement.textContent =
+					count === 0
+						? "No components selected"
+						: `${count} components selected`
+
+				// Update selected components list
+				if (count === 0) {
+					componentsElement.innerHTML =
+						'<p style="color: #7f8c8d; font-style: italic;">Click components on the map to select them</p>'
+				} else {
+					const selectedArray = Array.from(selectedComponents)
+					const selectedData = selectedArray
+						.map((id) => currentComponents.find((c) => c.objectid === id))
+						.filter(Boolean)
+
+					componentsElement.innerHTML = selectedData
+						.map(
+							(comp) => `
+						<div class="component-item">
+							<span>ID: ${comp.objectid} (${comp.total_length_m.toFixed(2)}m)</span>
+							<button class="remove-btn" onclick="toggleComponentSelection(${
+								comp.objectid
+							})">×</button>
+						</div>
+					`
+						)
+						.join("")
+				}
+
+				// Enable/disable save button
+				saveBtn.disabled = count === 0 || !selectedType
+			}
+
+			// Set classification type
+			function setClassificationType(type) {
+				// If user clicked Benches and there is a selection, set type and save immediately
+				if (type === "benches" && selectedComponents.size > 0) {
+					selectedType = "benches"
+					saveTrainingExample()
+					return
+				}
+				selectedType = type
+
+				// Update UI
+				document.querySelectorAll(".type-btn").forEach((btn) => {
+					btn.classList.remove("selected")
+				})
+				document
+					.querySelector(`[data-type="${type}"]`)
+					.classList.add("selected")
+
+				updateSelectionUI()
+			}
+
+			// Save training example
+			async function saveTrainingExample() {
+				if (selectedComponents.size === 0 || !selectedType) {
+					alert("Please select components and choose a type")
+					return
+				}
+
+				try {
+					const selectedArray = Array.from(selectedComponents)
+					const selectedData = selectedArray
+						.map((id) => currentComponents.find((c) => c.objectid === id))
+						.filter(Boolean)
+
+					// Calculate cluster features
+					const totalLength = selectedData.reduce(
+						(sum, comp) => sum + comp.total_length_m,
+						0
+					)
+					const avgLength = totalLength / selectedData.length
+
+					// Create training example (extended)
+					const center = map.getCenter()
+					const trainingExample = {
+						id: `manual_${Date.now()}`,
+						type: selectedType,
+						component_ids: selectedArray,
+						component_count: selectedArray.length,
+						total_length: totalLength,
+						avg_length: avgLength,
+						created_at: new Date().toISOString(),
+						arrondissement: document.getElementById("arrondissementSelect")
+							.value,
+						notes: document.getElementById("notes")?.value || undefined,
+						confidence:
+							Number(document.getElementById("confidence")?.value) || undefined,
+						map_center_lat: center.lat,
+						map_center_lon: center.lng,
+						map_zoom: map.getZoom(),
+					}
+
+					// Save to server
+					const response = await fetch("/api/manual-clusters", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify(trainingExample),
+					})
+
+					if (!response.ok) {
+						throw new Error("Failed to save training example")
+					}
+
+					// Add to local list, remember last saved ID, and mark components as classified
+					trainingExamples.push(trainingExample)
+					lastSavedExample = trainingExample
+					trainingExample.component_ids.forEach((id) => classifiedIds.add(id))
+					updateTrainingExamplesUI()
+					// Update map styles for newly classified
+					trainingExample.component_ids.forEach((id) => {
+						const layer = componentLayers.get(id)
+						if (layer)
+							layer.setStyle({
+								color: CLASSIFIED_PINK,
+								weight: 3,
+								opacity: 1.0,
+							})
+					})
+
+					// Clear selection
+					clearSelection()
+					document.getElementById("undoLastBtn").disabled = false
+
+					// Show success
+					const saveBtn = document.getElementById("saveClusterBtn")
+					const originalText = saveBtn.textContent
+					saveBtn.textContent = "✅ Saved!"
+					setTimeout(() => {
+						saveBtn.textContent = originalText
+					}, 1500)
+
+					console.log("Training example saved:", trainingExample)
+				} catch (error) {
+					console.error("Error saving training example:", error)
+					alert("Failed to save training example. Please try again.")
+				}
+			}
+
+			// Clear selection
+			function clearSelection() {
+				selectedComponents.forEach((objectid) => {
+					const layer = componentLayers.get(objectid)
+					if (layer) {
+						const component = currentComponents.find(
+							(c) => c.objectid === objectid
+						)
+						if (component) {
+							const color = getComponentColor(component.total_length_m)
+							layer.setStyle({ weight: 2, opacity: 0.7, color: color })
+						}
+					}
+				})
+
+				selectedComponents.clear()
+				selectedType = null
+
+				// Update UI
+				document.querySelectorAll(".type-btn").forEach((btn) => {
+					btn.classList.remove("selected")
+				})
+
+				updateSelectionUI()
+			}
+
+			// Update training examples UI
+			function updateTrainingExamplesUI() {
+				const countElement = document.getElementById("exampleCount")
+				const examplesElement = document.getElementById("trainingExamples")
+
+				countElement.textContent = trainingExamples.length
+
+				if (trainingExamples.length === 0) {
+					examplesElement.innerHTML =
+						'<h4>Training Examples (0)</h4><p style="color: #7f8c8d; font-style: italic;">No examples created yet</p>'
+				} else {
+					const examplesHTML = trainingExamples
+						.map(
+							(example) => `
+						<div class="example-item">
+							<div>
+								<span class="example-type ${example.type}">${example.type}</span>
+								<span style="margin-left: 0.5rem;">${example.component_count} components</span>
+								${
+									example.component_ids && example.component_ids.length
+										? `<span style="margin-left: 0.5rem; color:#7f8c8d;">IDs: ${example.component_ids.join(
+												", "
+										  )}</span>`
+										: ""
+								}
+							</div>
+							<span>${example.total_length.toFixed(1)}m</span>
+						</div>
+					`
+						)
+						.join("")
+
+					examplesElement.innerHTML =
+						`<h4>Training Examples (${trainingExamples.length})</h4>` +
+						examplesHTML
+				}
+			}
+
+			// Export training data
+			async function exportTrainingData() {
+				try {
+					const response = await fetch("/api/manual-clusters")
+					if (!response.ok) {
+						throw new Error("Failed to fetch training data")
+					}
+
+					const data = await response.json()
+
+					// Create and download file
+					const blob = new Blob([JSON.stringify(data, null, 2)], {
+						type: "application/json",
+					})
+					const url = URL.createObjectURL(blob)
+					const a = document.createElement("a")
+					a.href = url
+					a.download = `manual_clusters_${
+						new Date().toISOString().split("T")[0]
+					}.json`
+					a.click()
+					URL.revokeObjectURL(url)
+
+					alert(`Exported ${data.length} manual training examples!`)
+				} catch (error) {
+					console.error("Error exporting training data:", error)
+					alert("Failed to export training data. Please try again.")
+				}
+			}
+
+			// Clear map data
+			function clearData() {
+				componentsLayer.clearLayers()
+				componentLayers.clear()
+				currentComponents = []
+				clearSelection()
+			}
+
+			// Event listeners
+			document
+				.getElementById("loadDataBtn")
+				.addEventListener("click", loadComponents)
+			document
+				.getElementById("clearDataBtn")
+				.addEventListener("click", clearData)
+			document
+				.getElementById("saveClusterBtn")
+				.addEventListener("click", saveTrainingExample)
+			document
+				.getElementById("clearSelectionBtn")
+				.addEventListener("click", clearSelection)
+			document
+				.getElementById("exportBtn")
+				.addEventListener("click", exportTrainingData)
+			document
+				.getElementById("dropTableBtn")
+				.addEventListener("click", async () => {
+					if (!confirm("Drop manual_clusters table? This cannot be undone."))
+						return
+					try {
+						const resp = await fetch("/api/manual-clusters", {
+							method: "DELETE",
+						})
+						if (!resp.ok) throw new Error("Failed to drop table")
+						alert("manual_clusters table dropped")
+						trainingExamples = []
+						updateTrainingExamplesUI()
+					} catch (e) {
+						alert("Failed to drop table")
+					}
+				})
+
+			// Classification button listeners
+			document.querySelectorAll(".type-btn").forEach((btn) => {
+				btn.addEventListener("click", () => {
+					setClassificationType(btn.dataset.type)
+				})
+			})
+
+			// Keyboard shortcuts
+			document.addEventListener("keydown", (e) => {
+				switch (e.key) {
+					case "1":
+						setClassificationType("poubelles")
+						break
+					case "2":
+						setClassificationType("benches")
+						break
+					case "3":
+						setClassificationType("jardinieres")
+						break
+					case "s":
+						if (selectedComponents.size > 0 && selectedType)
+							saveTrainingExample()
+						break
+					case "c":
+						clearSelection()
+						break
+					case "Escape":
+						clearSelection()
+						break
+				}
+			})
+
+			// Make functions globally available for popup buttons
+			window.toggleComponentSelection = toggleComponentSelection
+
+			console.log("Manual Clustering Interface initialized")
+			console.log(
+				"Keyboard shortcuts: 1=Poubelles, 2=Benches, 3=Jardinieres, S=Save, C=Clear, Esc=Clear"
+			)
+		</script>
+	</body>
+</html>

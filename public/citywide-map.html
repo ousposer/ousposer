@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OusPoser - Citywide Street Furniture Map</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 300;
+        }
+        
+        .header p {
+            margin: 0.5rem 0 0 0;
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+        
+        .controls {
+            background: white;
+            padding: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .control-group label {
+            font-weight: 500;
+            color: #333;
+        }
+        
+        select, input, button {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        button:hover {
+            background: #5a6fd8;
+        }
+        
+        .stats {
+            background: white;
+            padding: 1rem;
+            margin: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: none;
+        }
+        
+        .stats.visible {
+            display: block;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 6px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+        
+        #map {
+            height: calc(100vh - 200px);
+            margin: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            font-size: 0.9rem;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0.5rem 0;
+        }
+        
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+        }
+        
+        .bench-color { background: #28a745; }
+        .poubelle-color { background: #dc3545; }
+        
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            z-index: 2000;
+            display: none;
+        }
+        
+        .loading.visible {
+            display: block;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏙️ OusPoser - Citywide Street Furniture Map</h1>
+        <p>Explore benches and poubelles across all 20 Paris arrondissements</p>
+    </div>
+    
+    <div class="controls">
+        <div class="control-group">
+            <label for="arrondissement">Arrondissement:</label>
+            <select id="arrondissement">
+                <option value="">All (1-20)</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <label for="furnitureType">Type:</label>
+            <select id="furnitureType">
+                <option value="">All Furniture</option>
+                <option value="bench">Benches Only</option>
+                <option value="poubelle">Poubelles Only</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <button id="loadData">Load Data</button>
+            <button id="toggleStats">Show Statistics</button>
+            <button id="clearMap">Clear Map</button>
+        </div>
+        
+        <div class="control-group">
+            <span id="itemCount">0 items loaded</span>
+        </div>
+    </div>
+    
+    <div class="stats" id="stats">
+        <h3>📊 Database Statistics</h3>
+        <div class="stats-grid" id="statsGrid">
+            <!-- Statistics will be loaded here -->
+        </div>
+    </div>
+    
+    <div id="map"></div>
+    
+    <div class="legend">
+        <h4 style="margin: 0 0 1rem 0;">Legend</h4>
+        <div class="legend-item">
+            <div class="legend-color bench-color"></div>
+            <span>Benches</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color poubelle-color"></div>
+            <span>Poubelles</span>
+        </div>
+    </div>
+    
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <div>Loading street furniture data...</div>
+    </div>
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script>
+        // Initialize map centered on Paris
+        const map = L.map('map').setView([48.8566, 2.3522], 11);
+        
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        
+        // Layer groups for different furniture types
+        const benchLayer = L.layerGroup().addTo(map);
+        const poubelleLayer = L.layerGroup().addTo(map);
+        
+        // Populate arrondissement dropdown
+        function populateArrondissements() {
+            const select = document.getElementById('arrondissement');
+            for (let i = 1; i <= 20; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = `Arrondissement ${i}`;
+                select.appendChild(option);
+            }
+        }
+        
+        // Show/hide loading indicator
+        function showLoading(show = true) {
+            document.getElementById('loading').classList.toggle('visible', show);
+        }
+        
+        // Update item count
+        function updateItemCount(count) {
+            document.getElementById('itemCount').textContent = `${count} items loaded`;
+        }
+        
+        // Create marker for furniture item
+        function createMarker(item) {
+            const isPoubelle = item.furniture_type === 'poubelle';
+            const color = isPoubelle ? '#dc3545' : '#28a745';
+            const icon = isPoubelle ? '🗑️' : '🪑';
+            
+            const marker = L.circleMarker([item.latitude, item.longitude], {
+                radius: 6,
+                fillColor: color,
+                color: 'white',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.8
+            });
+            
+            // Create popup content
+            const popupContent = `
+                <div style="font-family: Arial, sans-serif;">
+                    <h4 style="margin: 0 0 0.5rem 0;">${icon} ${item.furniture_type.charAt(0).toUpperCase() + item.furniture_type.slice(1)}</h4>
+                    <p><strong>ID:</strong> ${item.furniture_id}</p>
+                    <p><strong>Arrondissement:</strong> ${item.arrondissement}</p>
+                    <p><strong>Type:</strong> ${item.subtype}</p>
+                    <p><strong>Components:</strong> ${item.component_count}</p>
+                    <p><strong>Confidence:</strong> ${(item.detection_confidence * 100).toFixed(1)}%</p>
+                    <p><strong>Location:</strong> ${item.latitude.toFixed(6)}, ${item.longitude.toFixed(6)}</p>
+                </div>
+            `;
+            
+            marker.bindPopup(popupContent);
+            
+            return marker;
+        }
+        
+        // Load furniture data
+        async function loadFurnitureData() {
+            showLoading(true);
+            
+            try {
+                const arrondissement = document.getElementById('arrondissement').value;
+                const furnitureType = document.getElementById('furnitureType').value;
+                
+                let url = '/api/furniture?limit=5000';
+                if (arrondissement) url += `&arrondissement=${arrondissement}`;
+                if (furnitureType) url += `&type=${furnitureType}`;
+                
+                console.log('Loading data from:', url);
+                
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('Loaded furniture data:', data.length, 'items');
+                
+                // Clear existing markers
+                benchLayer.clearLayers();
+                poubelleLayer.clearLayers();
+                
+                // Add markers to appropriate layers
+                data.forEach(item => {
+                    const marker = createMarker(item);
+                    
+                    if (item.furniture_type === 'poubelle') {
+                        poubelleLayer.addLayer(marker);
+                    } else {
+                        benchLayer.addLayer(marker);
+                    }
+                });
+                
+                updateItemCount(data.length);
+                
+                // Fit map to show all markers if data exists
+                if (data.length > 0) {
+                    const group = L.featureGroup([benchLayer, poubelleLayer]);
+                    map.fitBounds(group.getBounds(), { padding: [20, 20] });
+                }
+                
+            } catch (error) {
+                console.error('Error loading furniture data:', error);
+                alert('Error loading data: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        // Load statistics
+        async function loadStatistics() {
+            try {
+                const response = await fetch('/api/stats');
+                const stats = await response.json();
+                
+                const statsGrid = document.getElementById('statsGrid');
+                statsGrid.innerHTML = '';
+                
+                // Total counts
+                if (stats.totalBenches && stats.totalPoubelles) {
+                    const totalBenches = stats.totalBenches[0]?.count || 0;
+                    const totalPoubelles = stats.totalPoubelles[0]?.count || 0;
+                    
+                    statsGrid.innerHTML += `
+                        <div class="stat-card">
+                            <div class="stat-number">${totalBenches}</div>
+                            <div class="stat-label">Total Benches</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${totalPoubelles}</div>
+                            <div class="stat-label">Total Poubelles</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${totalBenches + totalPoubelles}</div>
+                            <div class="stat-label">Total Furniture</div>
+                        </div>
+                    `;
+                }
+                
+                // Arrondissement with most furniture
+                if (stats.byArrondissement && stats.byArrondissement.length > 0) {
+                    const topArr = stats.byArrondissement.reduce((max, arr) => 
+                        arr.total_furniture > max.total_furniture ? arr : max
+                    );
+                    
+                    statsGrid.innerHTML += `
+                        <div class="stat-card">
+                            <div class="stat-number">${topArr.arrondissement}</div>
+                            <div class="stat-label">Top Arrondissement<br>(${topArr.total_furniture} items)</div>
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+            }
+        }
+        
+        // Event listeners
+        document.getElementById('loadData').addEventListener('click', loadFurnitureData);
+        
+        document.getElementById('toggleStats').addEventListener('click', async () => {
+            const stats = document.getElementById('stats');
+            const button = document.getElementById('toggleStats');
+            
+            if (stats.classList.contains('visible')) {
+                stats.classList.remove('visible');
+                button.textContent = 'Show Statistics';
+            } else {
+                await loadStatistics();
+                stats.classList.add('visible');
+                button.textContent = 'Hide Statistics';
+            }
+        });
+        
+        document.getElementById('clearMap').addEventListener('click', () => {
+            benchLayer.clearLayers();
+            poubelleLayer.clearLayers();
+            updateItemCount(0);
+        });
+        
+        // Initialize
+        populateArrondissements();
+        
+        // Load initial data
+        loadFurnitureData();
+    </script>
+</body>
+</html>

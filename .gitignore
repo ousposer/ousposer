@@ -1,0 +1,120 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Large data files (>10MB)
+data/les-arbres-full-wgs84.json
+data/plan-de-voirie-mobiliers-urbains-jardinieres-bancs-corbeilles-de-rue.json
+data/processed-trees.json
+
+# Keep sample files for reference
+!data/*-sample.json
+!data/*-example.json
+
+# Logs
+logs/
+*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# nyc test coverage
+.nyc_output
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# next.js build output
+.next/
+out/
+
+# nuxt.js build output
+.nuxt
+
+# vuepress build output
+.vuepress/dist
+
+# Serverless directories
+.serverless
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+
+# Build outputs
+dist/
+build/
+
+# Cache
+.cache/
+
+# Backup files
+*.backup
+*.bak
+
+# Archive directory large files
+archive/**/*.json
+archive/**/*.db
+archive/**/*.sqlite
+
+# AI-generated tracking documents (keep local, exclude from repo)
+*_SUMMARY.md
+*_DOCUMENT.md
+*_JOURNEY.md
+HANDOFF_*.md
+CLEANUP_*.md
+PROJECT_JOURNEY.md
+
+# Keep important documentation and small config files
+!archive/README.md
+!archive/**/*.md
+!archive/**/*.js
+!archive/**/*.sql

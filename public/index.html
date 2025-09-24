@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>OusPoser - Street Furniture Viewer</title>
+
+		<!-- Leaflet CSS -->
+		<link
+			rel="stylesheet"
+			href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+		<style>
+			body {
+				margin: 0;
+				padding: 0;
+				font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+				background: #f5f5f5;
+			}
+
+			.header {
+				background: #2c3e50;
+				color: white;
+				padding: 1rem;
+				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+			}
+
+			.header h1 {
+				margin: 0;
+				font-size: 1.5rem;
+			}
+
+			.header p {
+				margin: 0.5rem 0 0 0;
+				opacity: 0.8;
+				font-size: 0.9rem;
+			}
+
+			.controls {
+				background: white;
+				padding: 1rem;
+				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+				display: flex;
+				gap: 1rem;
+				align-items: center;
+				flex-wrap: wrap;
+			}
+
+			.control-group {
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+			}
+
+			.control-group label {
+				font-weight: 500;
+				color: #2c3e50;
+			}
+
+			select,
+			input {
+				padding: 0.5rem;
+				border: 1px solid #ddd;
+				border-radius: 4px;
+				font-size: 0.9rem;
+			}
+
+			button {
+				background: #3498db;
+				color: white;
+				border: none;
+				padding: 0.5rem 1rem;
+				border-radius: 4px;
+				cursor: pointer;
+				font-size: 0.9rem;
+				transition: background 0.2s;
+			}
+
+			button:hover {
+				background: #2980b9;
+			}
+
+			button:disabled {
+				background: #bdc3c7;
+				cursor: not-allowed;
+			}
+
+			#map {
+				height: calc(100vh - 140px);
+				width: 100%;
+			}
+
+			.stats {
+				position: absolute;
+				top: 80px;
+				right: 10px;
+				background: white;
+				padding: 1rem;
+				border-radius: 4px;
+				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+				z-index: 1000;
+				min-width: 200px;
+			}
+
+			.stats h3 {
+				margin: 0 0 0.5rem 0;
+				color: #2c3e50;
+				font-size: 1rem;
+			}
+
+			.stats p {
+				margin: 0.25rem 0;
+				font-size: 0.9rem;
+			}
+
+			.loading {
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%);
+				background: white;
+				padding: 2rem;
+				border-radius: 8px;
+				box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+				z-index: 2000;
+				text-align: center;
+			}
+
+			.loading.hidden {
+				display: none;
+			}
+
+			.legend {
+				position: absolute;
+				bottom: 10px;
+				right: 10px;
+				background: white;
+				padding: 1rem;
+				border-radius: 4px;
+				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+				z-index: 1000;
+			}
+
+			.legend h4 {
+				margin: 0 0 0.5rem 0;
+				color: #2c3e50;
+				font-size: 0.9rem;
+			}
+
+			.legend-item {
+				display: flex;
+				align-items: center;
+				gap: 0.5rem;
+				margin: 0.25rem 0;
+				font-size: 0.8rem;
+			}
+
+			.legend-color {
+				width: 20px;
+				height: 3px;
+				border-radius: 2px;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="header">
+			<h1>🪑 OusPoser - Street Furniture Viewer</h1>
+			<p>Visualizing Paris street furniture data with geometric analysis</p>
+		</div>
+
+		<div class="controls">
+			<div class="control-group">
+				<label for="viewMode">View Mode:</label>
+				<select id="viewMode">
+					<option value="components">Individual Components</option>
+					<option value="pieces">Furniture Pieces (Clustered)</option>
+				</select>
+			</div>
+
+			<div class="control-group">
+				<label for="arrondissement">Arrondissement:</label>
+				<select id="arrondissement">
+					<option value="">All</option>
+					<option value="1">1er</option>
+					<option value="2">2e</option>
+					<option value="3">3e</option>
+					<option value="4">4e</option>
+					<option value="5">5e</option>
+					<option value="6">6e</option>
+					<option value="7">7e</option>
+					<option value="8">8e</option>
+					<option value="9">9e</option>
+					<option value="10">10e</option>
+					<option value="11">11e</option>
+					<option value="12">12e</option>
+					<option value="13">13e</option>
+					<option value="14">14e</option>
+					<option value="15">15e</option>
+					<option value="16">16e</option>
+					<option value="17">17e</option>
+					<option value="18">18e</option>
+					<option value="19">19e</option>
+					<option value="20">20e</option>
+				</select>
+			</div>
+
+			<div class="control-group" id="componentControls">
+				<label for="lengthFilter">Length Range (m):</label>
+				<input
+					type="number"
+					id="minLength"
+					placeholder="Min"
+					step="0.1"
+					value="0" />
+				<span>-</span>
+				<input
+					type="number"
+					id="maxLength"
+					placeholder="Max"
+					step="0.1"
+					value="20" />
+			</div>
+
+			<div class="control-group" id="componentControls2">
+				<label for="showBenches">Show Potential Benches:</label>
+				<input type="checkbox" id="showBenches" />
+			</div>
+
+			<div class="control-group" id="pieceControls" style="display: none">
+				<label for="furnitureType">Furniture Type:</label>
+				<select id="furnitureType">
+					<option value="">All Types</option>
+					<option value="poubelles">Poubelles</option>
+					<option value="benches">Benches</option>
+					<option value="jardinieres">Jardinieres (Multi)</option>
+					<option value="jardinieres_single">Jardinieres (Single)</option>
+				</select>
+			</div>
+
+			<div class="control-group" id="pieceControls2" style="display: none">
+				<label for="componentRange">Components:</label>
+				<input
+					type="number"
+					id="minComponents"
+					placeholder="Min"
+					min="1"
+					value="1" />
+				<span>-</span>
+				<input
+					type="number"
+					id="maxComponents"
+					placeholder="Max"
+					min="1"
+					value="50" />
+			</div>
+
+			<button id="loadData">Load Data</button>
+			<button id="clearData">Clear</button>
+		</div>
+
+		<div id="map"></div>
+
+		<div class="loading" id="loading">
+			<h3>Loading street furniture data...</h3>
+			<p>This may take a moment</p>
+		</div>
+
+		<div class="stats" id="stats">
+			<h3>Statistics</h3>
+			<p id="totalObjects">Objects: 0</p>
+			<p id="avgLength">Avg Length: 0m</p>
+			<p id="lengthRange">Range: 0-0m</p>
+			<p id="avgComponents" style="display: none">Avg Components: 0</p>
+		</div>
+
+		<div class="legend" id="componentLegend">
+			<h4>Component Legend</h4>
+			<div class="legend-item">
+				<div class="legend-color" style="background: #e74c3c"></div>
+				<span>Potential Benches (4-10m)</span>
+			</div>
+			<div class="legend-item">
+				<div class="legend-color" style="background: #f39c12"></div>
+				<span>Medium Objects (2-5m)</span>
+			</div>
+			<div class="legend-item">
+				<div class="legend-color" style="background: #3498db"></div>
+				<span>Short Objects (0.5-2m)</span>
+			</div>
+			<div class="legend-item">
+				<div class="legend-color" style="background: #95a5a6"></div>
+				<span>Tiny Objects (0-0.5m)</span>
+			</div>
+			<div class="legend-item">
+				<div class="legend-color" style="background: #9b59b6"></div>
+				<span>Large Objects (10m+)</span>
+			</div>
+		</div>
+
+		<div class="legend" id="pieceLegend" style="display: none">
+			<h4>Furniture Pieces</h4>
+			<div class="legend-item">
+				<div class="legend-color" style="background: #e74c3c"></div>
+				<span>Poubelles (Single)</span>
+			</div>
+			<div class="legend-item">
+				<div class="legend-color" style="background: #2ecc71"></div>
+				<span>Benches (Multi-component)</span>
+			</div>
+			<div class="legend-item">
+				<div class="legend-color" style="background: #f39c12"></div>
+				<span>Jardinieres (Multi)</span>
+			</div>
+			<div class="legend-item">
+				<div class="legend-color" style="background: #9b59b6"></div>
+				<span>Jardinieres (Single)</span>
+			</div>
+		</div>
+
+		<!-- Leaflet JS -->
+		<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+		<script>
+			// Initialize map centered on Paris with unlimited zoom
+			const map = L.map("map", {
+				maxZoom: 26,
+				minZoom: 1,
+			}).setView([48.8566, 2.3522], 12)
+
+			// Add CartoDB Positron tiles (cleaner, less cluttered)
+			L.tileLayer(
+				"https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+				{
+					attribution: "© OpenStreetMap contributors © CARTO",
+					subdomains: "abcd",
+					maxZoom: 26,
+				}
+			).addTo(map)
+
+			// Layer group for street furniture
+			let furnitureLayer = L.layerGroup().addTo(map)
+
+			// Color coding for components
+			function getComponentColor(length) {
+				if (length >= 4 && length <= 10) return "#e74c3c" // Red for potential benches
+				if (length >= 2 && length < 5) return "#f39c12" // Orange for medium
+				if (length >= 0.5 && length < 2) return "#3498db" // Blue for short
+				if (length < 0.5) return "#95a5a6" // Gray for tiny
+				return "#9b59b6" // Purple for large
+			}
+
+			// Color coding for furniture pieces
+			function getPieceColor(type) {
+				switch (type) {
+					case "poubelles":
+						return "#e74c3c" // Red
+					case "benches":
+						return "#2ecc71" // Green
+					case "jardinieres":
+						return "#f39c12" // Orange
+					case "jardinieres_single":
+						return "#9b59b6" // Purple
+					default:
+						return "#95a5a6" // Gray
+				}
+			}
+
+			// Toggle view mode controls
+			function toggleViewMode() {
+				const viewMode = document.getElementById("viewMode").value
+				const componentControls = document.querySelectorAll(
+					"#componentControls, #componentControls2"
+				)
+				const pieceControls = document.querySelectorAll(
+					"#pieceControls, #pieceControls2"
+				)
+				const componentLegend = document.getElementById("componentLegend")
+				const pieceLegend = document.getElementById("pieceLegend")
+				const avgComponents = document.getElementById("avgComponents")
+
+				if (viewMode === "pieces") {
+					componentControls.forEach((el) => (el.style.display = "none"))
+					pieceControls.forEach((el) => (el.style.display = "flex"))
+					componentLegend.style.display = "none"
+					pieceLegend.style.display = "block"
+					avgComponents.style.display = "block"
+				} else {
+					componentControls.forEach((el) => (el.style.display = "flex"))
+					pieceControls.forEach((el) => (el.style.display = "none"))
+					componentLegend.style.display = "block"
+					pieceLegend.style.display = "none"
+					avgComponents.style.display = "none"
+				}
+			}
+
+			// Load data from API
+			async function loadData() {
+				const loading = document.getElementById("loading")
+				const loadButton = document.getElementById("loadData")
+				const viewMode = document.getElementById("viewMode").value
+
+				loading.classList.remove("hidden")
+				loadButton.disabled = true
+
+				try {
+					// Clear existing data
+					furnitureLayer.clearLayers()
+
+					if (viewMode === "pieces") {
+						await loadFurniturePieces()
+					} else {
+						await loadComponents()
+					}
+				} catch (error) {
+					console.error("Error loading data:", error)
+					alert("Error loading data. Please try again.")
+				} finally {
+					loading.classList.add("hidden")
+					loadButton.disabled = false
+				}
+			}
+
+			// Load individual components
+			async function loadComponents() {
+				// Build query parameters
+				const params = new URLSearchParams()
+
+				const arrondissement = document.getElementById("arrondissement").value
+				if (arrondissement) params.append("arrondissement", arrondissement)
+
+				const minLength = document.getElementById("minLength").value
+				if (minLength) params.append("minLength", minLength)
+
+				const maxLength = document.getElementById("maxLength").value
+				if (maxLength) params.append("maxLength", maxLength)
+
+				const showBenches = document.getElementById("showBenches").checked
+				if (showBenches) params.append("benchesOnly", "true")
+
+				// Fetch data
+				const response = await fetch(`/api/furniture?${params}`)
+				const data = await response.json()
+
+				// Add objects to map
+				let totalLength = 0
+				let minLen = Infinity
+				let maxLen = 0
+
+				data.forEach((obj) => {
+					try {
+						const geoShape = JSON.parse(obj.geo_shape)
+						const coordinates = geoShape.geometry.coordinates
+
+						// Convert coordinates to Leaflet format [lat, lng]
+						const latLngs = coordinates.map(([lng, lat]) => [lat, lng])
+
+						const color = getComponentColor(obj.total_length_m)
+
+						const polyline = L.polyline(latLngs, {
+							color: color,
+							weight: 2,
+							opacity: 0.8,
+						})
+
+						// Add popup with object info
+						polyline.bindPopup(`
+                        <strong>Object ID:</strong> ${obj.objectid}<br>
+                        <strong>Arrondissement:</strong> ${
+													obj.arrondissement || "Unknown"
+												}<br>
+                        <strong>Length:</strong> ${obj.total_length_m.toFixed(
+													2
+												)}m<br>
+                        <strong>Points:</strong> ${obj.point_count}<br>
+                        <strong>Aspect Ratio:</strong> ${obj.aspect_ratio.toFixed(
+													2
+												)}
+                    `)
+
+						furnitureLayer.addLayer(polyline)
+
+						// Update statistics
+						totalLength += obj.total_length_m
+						minLen = Math.min(minLen, obj.total_length_m)
+						maxLen = Math.max(maxLen, obj.total_length_m)
+					} catch (error) {
+						console.warn("Error processing object:", obj.objectid, error)
+					}
+				})
+
+				// Update statistics display
+				const avgLength = data.length > 0 ? totalLength / data.length : 0
+				document.getElementById(
+					"totalObjects"
+				).textContent = `Objects: ${data.length}`
+				document.getElementById(
+					"avgLength"
+				).textContent = `Avg Length: ${avgLength.toFixed(2)}m`
+				document.getElementById(
+					"lengthRange"
+				).textContent = `Range: ${minLen.toFixed(2)}-${maxLen.toFixed(2)}m`
+
+				// Fit map to data if we have objects
+				if (data.length > 0) {
+					// Calculate bounds from all coordinates
+					let bounds = L.latLngBounds()
+					furnitureLayer.eachLayer((layer) => {
+						bounds.extend(layer.getBounds())
+					})
+					map.fitBounds(bounds, { padding: [20, 20] })
+				}
+			}
+
+			// Load furniture pieces (clustered objects)
+			async function loadFurniturePieces() {
+				// Build query parameters
+				const params = new URLSearchParams()
+
+				const arrondissement = document.getElementById("arrondissement").value
+				if (arrondissement) params.append("arrondissement", arrondissement)
+
+				const furnitureType = document.getElementById("furnitureType").value
+				if (furnitureType) params.append("type", furnitureType)
+
+				const minComponents = document.getElementById("minComponents").value
+				if (minComponents) params.append("minComponents", minComponents)
+
+				const maxComponents = document.getElementById("maxComponents").value
+				if (maxComponents) params.append("maxComponents", maxComponents)
+
+				// Fetch data
+				const response = await fetch(`/api/pieces?${params}`)
+				const data = await response.json()
+
+				// Add pieces to map
+				let totalLength = 0
+				let totalComponents = 0
+				let minLen = Infinity
+				let maxLen = 0
+
+				data.forEach((piece) => {
+					try {
+						const color = getPieceColor(piece.estimated_type)
+
+						// Create a bounding box rectangle for the piece
+						const bounds = [
+							[piece.min_latitude, piece.min_longitude],
+							[piece.max_latitude, piece.max_longitude],
+						]
+
+						const rectangle = L.rectangle(bounds, {
+							color: color,
+							weight: 2,
+							opacity: 0.8,
+							fillOpacity: 0.3,
+						})
+
+						// Add popup with piece info
+						rectangle.bindPopup(`
+                        <strong>Piece ID:</strong> ${piece.piece_id}<br>
+                        <strong>Type:</strong> ${piece.estimated_type}<br>
+                        <strong>Arrondissement:</strong> ${
+													piece.arrondissement
+												}<br>
+                        <strong>Components:</strong> ${
+													piece.component_count
+												}<br>
+                        <strong>Total Length:</strong> ${piece.total_length_m.toFixed(
+													2
+												)}m<br>
+                        <strong>Max Span:</strong> ${piece.max_span_m.toFixed(
+													2
+												)}m<br>
+                        <strong>Complexity:</strong> ${piece.complexity_score.toFixed(
+													2
+												)}
+                    `)
+
+						furnitureLayer.addLayer(rectangle)
+
+						// Update statistics
+						totalLength += piece.total_length_m
+						totalComponents += piece.component_count
+						minLen = Math.min(minLen, piece.total_length_m)
+						maxLen = Math.max(maxLen, piece.total_length_m)
+					} catch (error) {
+						console.warn("Error processing piece:", piece.piece_id, error)
+					}
+				})
+
+				// Update statistics display
+				const avgLength = data.length > 0 ? totalLength / data.length : 0
+				const avgComponents =
+					data.length > 0 ? totalComponents / data.length : 0
+				document.getElementById(
+					"totalObjects"
+				).textContent = `Pieces: ${data.length}`
+				document.getElementById(
+					"avgLength"
+				).textContent = `Avg Length: ${avgLength.toFixed(2)}m`
+				document.getElementById(
+					"lengthRange"
+				).textContent = `Range: ${minLen.toFixed(2)}-${maxLen.toFixed(2)}m`
+				document.getElementById(
+					"avgComponents"
+				).textContent = `Avg Components: ${avgComponents.toFixed(1)}`
+
+				// Fit map to data if we have pieces
+				if (data.length > 0) {
+					let bounds = L.latLngBounds()
+					furnitureLayer.eachLayer((layer) => {
+						bounds.extend(layer.getBounds())
+					})
+					map.fitBounds(bounds, { padding: [20, 20] })
+				}
+			}
+
+			// Clear data
+			function clearData() {
+				furnitureLayer.clearLayers()
+				document.getElementById("totalObjects").textContent = "Objects: 0"
+				document.getElementById("avgLength").textContent = "Avg Length: 0m"
+				document.getElementById("lengthRange").textContent = "Range: 0-0m"
+				document.getElementById("avgComponents").textContent =
+					"Avg Components: 0"
+			}
+
+			// Event listeners
+			document.getElementById("loadData").addEventListener("click", loadData)
+			document.getElementById("clearData").addEventListener("click", clearData)
+			document
+				.getElementById("viewMode")
+				.addEventListener("change", toggleViewMode)
+
+			// Initialize view mode
+			toggleViewMode()
+
+			// Hide loading initially
+			document.getElementById("loading").classList.add("hidden")
+		</script>
+	</body>
+</html>
