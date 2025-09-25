@@ -1,0 +1,505 @@
+{
+	"total_count": 1323,
+	"results": [
+		{
+			"gid": "450080520",
+			"type_objet": "BORNE_FONTAINE",
+			"modele": "GHM Ville de Paris",
+			"no_voirie_pair": "88F",
+			"no_voirie_impair": null,
+			"voie": "RUE DES RIGOLES",
+			"commune": "PARIS 20EME ARRONDISSEMENT",
+			"dispo": "OUI",
+			"debut_ind": null,
+			"fin_ind": null,
+			"motif_ind": null,
+			"geo_shape": {
+				"type": "Feature",
+				"geometry": {
+					"coordinates": [2.3896907874285245, 48.87378920134511],
+					"type": "Point"
+				},
+				"properties": {}
+			},
+			"geo_point_2d": {
+				"lon": 2.3896907874285245,
+				"lat": 48.87378920134511
+			}
+		},
+		{
+			"gid": "450085108",
+			"type_objet": "FONTAINE_2EN1",
+			"modele": "Mât source",
+			"no_voirie_pair": null,
+			"no_voirie_impair": "101",
+			"voie": "QUAI BRANLY",
+			"commune": "PARIS 15EME ARRONDISSEMENT",
+			"dispo": "OUI",
+			"debut_ind": null,
+			"fin_ind": null,
+			"motif_ind": null,
+			"geo_shape": {
+				"type": "Feature",
+				"geometry": {
+					"coordinates": [2.2898925039174176, 48.855602411748905],
+					"type": "Point"
+				},
+				"properties": {}
+			},
+			"geo_point_2d": {
+				"lon": 2.2898925039174176,
+				"lat": 48.855602411748905
+			}
+		},
+		{
+			"gid": "450085355",
+			"type_objet": "FONTAINE_2EN1",
+			"modele": "Mât source",
+			"no_voirie_pair": "24",
+			"no_voirie_impair": null,
+			"voie": "RUE SAINT HIPPOLYTE",
+			"commune": "PARIS 13EME ARRONDISSEMENT",
+			"dispo": "OUI",
+			"debut_ind": null,
+			"fin_ind": null,
+			"motif_ind": null,
+			"geo_shape": {
+				"type": "Feature",
+				"geometry": {
+					"coordinates": [2.34645265710724, 48.83607199064391],
+					"type": "Point"
+				},
+				"properties": {}
+			},
+			"geo_point_2d": {
+				"lon": 2.34645265710724,
+				"lat": 48.83607199064391
+			}
+		},
+		{
+			"gid": "450085194",
+			"type_objet": "FONTAINE_2EN1",
+			"modele": "Mât source",
+			"no_voirie_pair": null,
+			"no_voirie_impair": "19",
+			"voie": "RUE DE L ARGONNE",
+			"commune": "PARIS 19EME ARRONDISSEMENT",
+			"dispo": "OUI",
+			"debut_ind": null,
+			"fin_ind": null,
+			"motif_ind": null,
+			"geo_shape": {
+				"type": "Feature",
+				"geometry": {
+					"coordinates": [2.3829307605373646, 48.89353645054427],
+					"type": "Point"
+				},
+				"properties": {}
+			},
+			"geo_point_2d": {
+				"lon": 2.3829307605373646,
+				"lat": 48.89353645054427
+			}
+		},
+		{
+			"gid": "450085237",
+			"type_objet": "FONTAINE_2EN1",
+			"modele": "Mât source",
+			"no_voirie_pair": null,
+			"no_voirie_impair": null,
+			"voie": "PLACE DU CARDINAL LAVIGERIE",
+			"commune": "PARIS 12EME ARRONDISSEMENT",
+			"dispo": "OUI",
+			"debut_ind": null,
+			"fin_ind": null,
+			"motif_ind": null,
+			"geo_shape": {
+				"type": "Feature",
+				"geometry": {
+					"coordinates": [2.404310099951246, 48.83225301532365],
+					"type": "Point"
+				},
+				"properties": {}
+			},
+			"geo_point_2d": {
+				"lon": 2.404310099951246,
+				"lat": 48.83225301532365
+			}
+		},
+		{
+			"gid": "450085406",
+			"type_objet": "FONTAINE_2EN1",
+			"modele": "Mât source",
+			"no_voirie_pair": "16",
+			"no_voirie_impair": null,
+			"voie": "RUE DU SURMELIN",
+			"commune": "PARIS 20EME ARRONDISSEMENT",
+			"dispo": "OUI",
+			"debut_ind": null,
+			"fin_ind": null,
+			"motif_ind": null,
+			"geo_shape": {
+				"type": "Feature",
+				"geometry": {
+					"coordinates": [2.402852884071728, 48.867972653185014],
+					"type": "Point"
+				},
+				"properties": {}
+			},
+			"geo_point_2d": {
+				"lon": 2.402852884071728,
+				"lat": 48.867972653185014
+			}
+		},
+		{
+			"gid": "450080320",
+			"type_objet": "FONTAINE_ARCEAU",
+			"modele": "Fontaine Arceau",
+			"no_voirie_pair": null,
+			"no_voirie_impair": null,
+			"voie": "PLACE DU PANTHEON",
+			"commune": "PARIS 5EME ARRONDISSEMENT",
+			"dispo": "OUI",
+			"debut_ind": null,
+			"fin_ind": null,
+			"motif_ind": null,
+			"geo_shape": {
+				"type": "Feature",
+				"geometry": {
+					"coordinates": [2.3453969832890365, 48.847017762172186],
+					"type": "Point"
+				},
+				"properties": {}
+			},
+			"geo_point_2d": {
+				"lon": 2.3453969832890365,
+				"lat": 48.847017762172186
+			}
+		},
+		{
+			"gid": "450080587",
+			"type_objet": "FONTAINE_ARCEAU",
+			"modele": "Fontaine Arceau",
+			"no_voirie_pair": "12",
+			"no_voirie_impair": null,
+			"voie": "RUE GEORGES THILL",
+			"commune": "PARIS 19EME ARRONDISSEMENT",
+			"dispo": "OUI",
+			"debut_ind": null,
+			"fin_ind": null,
+			"motif_ind": null,
+			"geo_shape": {
+				"type": "Feature",
+				"geometry": {
+					"coordinates": [2.3891107646546104, 48.88669015104042],
+					"type": "Point"
+				},
+				"properties": {}
+			},
+			"geo_point_2d": {
+				"lon": 2.3891107646546104,
+				"lat": 48.88669015104042
+			}
+		},
+		{
+			"gid": "450073011",
+			"type_objet": "FONTAINE_ARCEAU",
+			"modele": "Fontaine Arceau",
+			"no_voirie_pair": null,
+			"no_voirie_impair": "45F",
+			"voie": "QUAI DE LA SEINE",
+			"commune": "PARIS 19EME ARRONDISSEMENT",
+			"dispo": "OUI",
+			"debut_ind": null,
+			"fin_ind": null,
+			"motif_ind": null,
+			"geo_shape": {
+				"type": "Feature",
+				"geometry": {
+					"coordinates": [2.3741576571792886, 48.88627783847406],
+					"type": "Point"
+				},
+				"properties": {}
+			},
+			"geo_point_2d": {
+				"lon": 2.3741576571792886,
+				"lat": 48.88627783847406
+			}
+		},
+		{
+			"gid": "450080756",
+			"type_objet": "FONTAINE_ARCEAU",
+			"modele": "Fontaine Arceau",
+			"no_voirie_pair": "20",
+			"no_voirie_impair": null,
+			"voie": "AVENUE RENE COTY",
+			"commune": "PARIS 14EME ARRONDISSEMENT",
+			"dispo": "OUI",
+			"debut_ind": null,
+			"fin_ind": null,
+			"motif_ind": null,
+			"geo_shape": {
+				"type": "Feature",
+				"geometry": {
+					"coordinates": [2.334106948376816, 48.82955527601882],
+					"type": "Point"
+				},
+				"properties": {}
+			},
+			"geo_point_2d": {
+				"lon": 2.334106948376816,
+				"lat": 48.82955527601882
+			}
+		},
+		{
+			"gid": "450072309",
+			"type_objet": "FONTAINE_BOIS",
+			"modele": "Bayard D1",
+			"no_voirie_pair": null,
+			"no_voirie_impair": null,
+			"voie": "JARDIN DE L ABBE LEMIRE",
+			"commune": "PARIS 14EME ARRONDISSEMENT",
+			"dispo": "OUI",
+			"debut_ind": null,
+			"fin_ind": null,
+			"motif_ind": null,
+			"geo_shape": {
+				"type": "Feature",
+				"geometry": {
+					"coordinates": [2.3152380182920953, 48.83558883761192],
+					"type": "Point"
+				},
+				"properties": {}
+			},
+			"geo_point_2d": {
+				"lon": 2.3152380182920953,
+				"lat": 48.83558883761192
+			}
+		},
+		{
+			"gid": "450071601",
+			"type_objet": "FONTAINE_BOIS",
+			"modele": "Fontaine des Bois, Parcs et Jardins",
+			"no_voirie_pair": null,
+			"no_voirie_impair": null,
+			"voie": "RUE DE BRETAGNE",
+			"commune": "PARIS 3EME ARRONDISSEMENT",
+			"dispo": "OUI",
+			"debut_ind": null,
+			"fin_ind": null,
+			"motif_ind": null,
+			"geo_shape": {
+				"type": "Feature",
+				"geometry": {
+					"coordinates": [2.3610034303039047, 48.864035197090374],
+					"type": "Point"
+				},
+				"properties": {}
+			},
+			"geo_point_2d": {
+				"lon": 2.3610034303039047,
+				"lat": 48.864035197090374
+			}
+		},
+		{
+			"gid": "450071804",
+			"type_objet": "FONTAINE_BOIS",
+			"modele": "Particulier",
+			"no_voirie_pair": null,
+			"no_voirie_impair": "5F",
+			"voie": "JARDIN DU MUSEE DE CLUNY",
+			"commune": "PARIS 5EME ARRONDISSEMENT",
+			"dispo": "OUI",
+			"debut_ind": null,
+			"fin_ind": null,
+			"motif_ind": null,
+			"geo_shape": {
+				"type": "Feature",
+				"geometry": {
+					"coordinates": [2.3441637750532665, 48.850771425335644],
+					"type": "Point"
+				},
+				"properties": {}
+			},
+			"geo_point_2d": {
+				"lon": 2.3441637750532665,
+				"lat": 48.850771425335644
+			}
+		},
+		{
+			"gid": "450072450",
+			"type_objet": "FONTAINE_BOIS",
+			"modele": "Ville de Paris Bois",
+			"no_voirie_pair": null,
+			"no_voirie_impair": null,
+			"voie": "SQUARE CDL PETIT DE JULLEVILLE",
+			"commune": "PARIS 17EME ARRONDISSEMENT",
+			"dispo": "OUI",
+			"debut_ind": null,
+			"fin_ind": null,
+			"motif_ind": null,
+			"geo_shape": {
+				"type": "Feature",
+				"geometry": {
+					"coordinates": [2.2826365419100996, 48.88330912212006],
+					"type": "Point"
+				},
+				"properties": {}
+			},
+			"geo_point_2d": {
+				"lon": 2.2826365419100996,
+				"lat": 48.88330912212006
+			}
+		},
+		{
+			"gid": "450072180",
+			"type_objet": "FONTAINE_BOIS",
+			"modele": "GHM Bois",
+			"no_voirie_pair": null,
+			"no_voirie_impair": null,
+			"voie": "AVENUE EMILE LAURENT",
+			"commune": "PARIS 12EME ARRONDISSEMENT",
+			"dispo": "OUI",
+			"debut_ind": null,
+			"fin_ind": null,
+			"motif_ind": null,
+			"geo_shape": {
+				"type": "Feature",
+				"geometry": {
+					"coordinates": [2.4111571391749154, 48.84078956872964],
+					"type": "Point"
+				},
+				"properties": {}
+			},
+			"geo_point_2d": {
+				"lon": 2.4111571391749154,
+				"lat": 48.84078956872964
+			}
+		},
+		{
+			"gid": "450072301",
+			"type_objet": "FONTAINE_BOIS",
+			"modele": "Bayard D1",
+			"no_voirie_pair": null,
+			"no_voirie_impair": "27F",
+			"voie": "RUE JACQUIER",
+			"commune": "PARIS 14EME ARRONDISSEMENT",
+			"dispo": "OUI",
+			"debut_ind": null,
+			"fin_ind": null,
+			"motif_ind": null,
+			"geo_shape": {
+				"type": "Feature",
+				"geometry": {
+					"coordinates": [2.3168878325887734, 48.83019308224228],
+					"type": "Point"
+				},
+				"properties": {}
+			},
+			"geo_point_2d": {
+				"lon": 2.3168878325887734,
+				"lat": 48.83019308224228
+			}
+		},
+		{
+			"gid": "450072171",
+			"type_objet": "FONTAINE_BOIS",
+			"modele": "GHM Bois",
+			"no_voirie_pair": null,
+			"no_voirie_impair": null,
+			"voie": "PARC DE BERCY",
+			"commune": "PARIS 12EME ARRONDISSEMENT",
+			"dispo": "OUI",
+			"debut_ind": null,
+			"fin_ind": null,
+			"motif_ind": null,
+			"geo_shape": {
+				"type": "Feature",
+				"geometry": {
+					"coordinates": [2.3836703754390545, 48.835251374294856],
+					"type": "Point"
+				},
+				"properties": {}
+			},
+			"geo_point_2d": {
+				"lon": 2.3836703754390545,
+				"lat": 48.835251374294856
+			}
+		},
+		{
+			"gid": "450072240",
+			"type_objet": "FONTAINE_BOIS",
+			"modele": "GHM Bois",
+			"no_voirie_pair": null,
+			"no_voirie_impair": null,
+			"voie": "SQUARE HELOISE ET ABELARD",
+			"commune": "PARIS 13EME ARRONDISSEMENT",
+			"dispo": "OUI",
+			"debut_ind": null,
+			"fin_ind": null,
+			"motif_ind": null,
+			"geo_shape": {
+				"type": "Feature",
+				"geometry": {
+					"coordinates": [2.3701540485025565, 48.8314704804147],
+					"type": "Point"
+				},
+				"properties": {}
+			},
+			"geo_point_2d": {
+				"lon": 2.3701540485025565,
+				"lat": 48.8314704804147
+			}
+		},
+		{
+			"gid": "450071832",
+			"type_objet": "FONTAINE_BOIS",
+			"modele": "GHM Bois",
+			"no_voirie_pair": null,
+			"no_voirie_impair": null,
+			"voie": "SQUARE BOUCICAUT",
+			"commune": "PARIS 7EME ARRONDISSEMENT",
+			"dispo": "OUI",
+			"debut_ind": null,
+			"fin_ind": null,
+			"motif_ind": null,
+			"geo_shape": {
+				"type": "Feature",
+				"geometry": {
+					"coordinates": [2.3255861522793193, 48.85138175552386],
+					"type": "Point"
+				},
+				"properties": {}
+			},
+			"geo_point_2d": {
+				"lon": 2.3255861522793193,
+				"lat": 48.85138175552386
+			}
+		},
+		{
+			"gid": "450072211",
+			"type_objet": "FONTAINE_BOIS",
+			"modele": "Particulier",
+			"no_voirie_pair": null,
+			"no_voirie_impair": "39F",
+			"voie": "RUE DE CROULEBARBE",
+			"commune": "PARIS 13EME ARRONDISSEMENT",
+			"dispo": "OUI",
+			"debut_ind": null,
+			"fin_ind": null,
+			"motif_ind": null,
+			"geo_shape": {
+				"type": "Feature",
+				"geometry": {
+					"coordinates": [2.350377427080091, 48.83254628870409],
+					"type": "Point"
+				},
+				"properties": {}
+			},
+			"geo_point_2d": {
+				"lon": 2.350377427080091,
+				"lat": 48.83254628870409
+			}
+		}
+	]
+}
