@@ -17,9 +17,10 @@ const { DB_CONFIG } = require("../scripts/setup-postgresql")
 const FRESH_SPOT_CONFIG = {
 	// Search radius in meters for each amenity type
 	SEARCH_RADIUS: {
-		TREES: 150, // Trees provide shade, expanded for urban spaces
-		BENCHES: 200, // Benches should be within reasonable walking distance
-		TRASH_CANS: 200, // Trash cans for convenience, reasonable radius
+		TREES: 20, // Trees provide shade, expanded for urban spaces
+		BENCHES: 20, // Benches should be within reasonable walking distance
+		TRASH_CANS: 50, // Trash cans for convenience, reasonable radius
+		FOUNTAINS: 75, // Water cooling effect extends further
 	},
 
 	// Scoring weights (must sum to 1.0)
@@ -27,6 +28,13 @@ const FRESH_SPOT_CONFIG = {
 		SHADE: 0.5, // Shade is most important in hot weather
 		SEATING: 0.3, // Seating is important for resting
 		CONVENIENCE: 0.2, // Trash cans add convenience but less critical
+	},
+
+	// Water cooling bonus system (additive, not competitive)
+	WATER_COOLING: {
+		MAX_BONUS: 2.0, // Maximum bonus points to add to overall score
+		DECAY_FUNCTION: "exponential", // How cooling effect decreases with distance
+		FOUNTAIN_MULTIPLIER: 1.0, // Base multiplier for fountain cooling effects
 	},
 
 	// Scoring thresholds
@@ -63,18 +71,24 @@ class FreshSpotAnalyzer {
 			this.validateCoordinates(latitude, longitude)
 
 			// Analyze each factor in parallel for efficiency
-			const [shadeAnalysis, seatingAnalysis, convenienceAnalysis] =
-				await Promise.all([
-					this.analyzeShade(latitude, longitude),
-					this.analyzeSeating(latitude, longitude),
-					this.analyzeConvenience(latitude, longitude),
-				])
+			const [
+				shadeAnalysis,
+				seatingAnalysis,
+				convenienceAnalysis,
+				waterCoolingAnalysis,
+			] = await Promise.all([
+				this.analyzeShade(latitude, longitude),
+				this.analyzeSeating(latitude, longitude),
+				this.analyzeConvenience(latitude, longitude),
+				this.analyzeWaterCooling(latitude, longitude),
+			])
 
 			// Calculate overall fresh spot score
 			const overallScore = this.calculateOverallScore(
 				shadeAnalysis,
 				seatingAnalysis,
-				convenienceAnalysis
+				convenienceAnalysis,
+				waterCoolingAnalysis
 			)
 
 			// Determine fresh spot rating
@@ -94,6 +108,7 @@ class FreshSpotAnalyzer {
 					shade: shadeAnalysis,
 					seating: seatingAnalysis,
 					convenience: convenienceAnalysis,
+					water_cooling: waterCoolingAnalysis,
 				},
 				scoring: {
 					overall_score: Math.round(overallScore * 100) / 100,
@@ -102,7 +117,7 @@ class FreshSpotAnalyzer {
 				},
 				metadata: {
 					analyzed_at: new Date().toISOString(),
-					algorithm_version: "1.0",
+					algorithm_version: "1.1", // Updated version with water cooling
 					search_radii: FRESH_SPOT_CONFIG.SEARCH_RADIUS,
 				},
 			}
@@ -116,16 +131,18 @@ class FreshSpotAnalyzer {
 	 */
 	async analyzeShade(latitude, longitude) {
 		const query = `
-            SELECT 
+            SELECT
                 tree_id,
                 common_name,
                 shade_score,
                 estimated_canopy_radius_m,
+                ST_Y(location) as latitude,
+                ST_X(location) as longitude,
                 ST_Distance(location::geography, ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography) as distance_m
             FROM ousposer.trees
             WHERE ST_DWithin(
-                location::geography, 
-                ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography, 
+                location::geography,
+                ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography,
                 $3
             )
             ORDER BY distance_m, shade_score DESC
@@ -176,7 +193,8 @@ class FreshSpotAnalyzer {
 			best_shade_score: bestShadeScore,
 			average_shade_score: Math.round(averageShadeScore * 100) / 100,
 			closest_tree_distance: Math.round(closestTreeDistance * 100) / 100,
-			trees: trees.slice(0, 5), // Return top 5 closest trees
+			trees,
+			// trees: trees.slice(0, 5), // Return top 5 closest trees
 		}
 	}
 
@@ -185,15 +203,17 @@ class FreshSpotAnalyzer {
 	 */
 	async analyzeSeating(latitude, longitude) {
 		const query = `
-            SELECT 
+            SELECT
                 bench_id,
                 bench_type,
                 total_length_m,
+                ST_Y(location) as latitude,
+                ST_X(location) as longitude,
                 ST_Distance(location::geography, ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography) as distance_m
             FROM ousposer.benches
             WHERE ST_DWithin(
-                location::geography, 
-                ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography, 
+                location::geography,
+                ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography,
                 $3
             )
             ORDER BY distance_m
@@ -256,13 +276,15 @@ class FreshSpotAnalyzer {
 	 */
 	async analyzeConvenience(latitude, longitude) {
 		const query = `
-            SELECT 
+            SELECT
                 poubelle_id,
+                ST_Y(location) as latitude,
+                ST_X(location) as longitude,
                 ST_Distance(location::geography, ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography) as distance_m
             FROM ousposer.poubelles
             WHERE ST_DWithin(
-                location::geography, 
-                ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography, 
+                location::geography,
+                ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography,
                 $3
             )
             ORDER BY distance_m
@@ -317,16 +339,120 @@ class FreshSpotAnalyzer {
 	}
 
 	/**
-	 * Calculate overall fresh spot score using weighted factors
+	 * Analyze water cooling effects from nearby fountains
 	 */
-	calculateOverallScore(shadeAnalysis, seatingAnalysis, convenienceAnalysis) {
+	async analyzeWaterCooling(latitude, longitude) {
+		try {
+			const query = `
+                SELECT
+                    f.id,
+                    f.gid,
+                    f.type_objet,
+                    f.modele,
+                    f.voie,
+                    f.arrondissement,
+                    f.dispo,
+                    f.cooling_effect,
+                    f.effective_range_m,
+                    ST_Y(f.location) as latitude,
+                    ST_X(f.location) as longitude,
+                    ST_Distance(
+                        ST_GeogFromText('POINT(' || $2 || ' ' || $1 || ')'),
+                        ST_GeogFromText('POINT(' || ST_X(f.location) || ' ' || ST_Y(f.location) || ')')
+                    ) as distance_m
+                FROM ousposer.fountains f
+                WHERE f.dispo = 'OUI'
+                AND ST_DWithin(
+                    ST_GeogFromText('POINT(' || $2 || ' ' || $1 || ')'),
+                    ST_GeogFromText('POINT(' || ST_X(f.location) || ' ' || ST_Y(f.location) || ')'),
+                    $3
+                )
+                ORDER BY distance_m ASC
+                LIMIT 10
+            `
+
+			const result = await this.pool.query(query, [
+				latitude,
+				longitude,
+				FRESH_SPOT_CONFIG.SEARCH_RADIUS.FOUNTAINS,
+			])
+			const fountains = result.rows
+
+			if (fountains.length === 0) {
+				return {
+					bonus: 0,
+					fountain_count: 0,
+					closest_fountain_distance: null,
+					fountains: [],
+				}
+			}
+
+			// Calculate water cooling bonus using exponential decay
+			let coolingBonus = 0
+			let closestFountainDistance = fountains[0].distance_m
+
+			fountains.forEach((fountain) => {
+				// Exponential decay: stronger effect closer to fountain
+				const distanceFactor = Math.exp(-fountain.distance_m / 30) // 30m decay constant
+
+				// Factor in fountain's cooling effect and effective range
+				const effectivenessFactor =
+					fountain.cooling_effect *
+					Math.max(0, 1 - fountain.distance_m / fountain.effective_range_m)
+
+				// Calculate bonus contribution
+				const fountainBonus =
+					distanceFactor *
+					effectivenessFactor *
+					FRESH_SPOT_CONFIG.WATER_COOLING.FOUNTAIN_MULTIPLIER
+
+				coolingBonus += fountainBonus
+			})
+
+			// Cap the bonus at maximum allowed
+			coolingBonus = Math.min(
+				FRESH_SPOT_CONFIG.WATER_COOLING.MAX_BONUS,
+				coolingBonus
+			)
+
+			return {
+				bonus: Math.round(coolingBonus * 100) / 100,
+				fountain_count: fountains.length,
+				closest_fountain_distance:
+					Math.round(closestFountainDistance * 100) / 100,
+				fountains: fountains.slice(0, 3), // Return top 3 closest fountains
+			}
+		} catch (error) {
+			console.error("Water cooling analysis failed:", error)
+			return {
+				bonus: 0,
+				fountain_count: 0,
+				closest_fountain_distance: null,
+				fountains: [],
+			}
+		}
+	}
+
+	/**
+	 * Calculate overall fresh spot score using weighted factors plus water cooling bonus
+	 */
+	calculateOverallScore(
+		shadeAnalysis,
+		seatingAnalysis,
+		convenienceAnalysis,
+		waterCoolingAnalysis = null
+	) {
 		const { WEIGHTS } = FRESH_SPOT_CONFIG
 
-		return (
+		const baseScore =
 			shadeAnalysis.score * WEIGHTS.SHADE +
 			seatingAnalysis.score * WEIGHTS.SEATING +
 			convenienceAnalysis.score * WEIGHTS.CONVENIENCE
-		)
+
+		// Add water cooling bonus if available
+		const waterBonus = waterCoolingAnalysis ? waterCoolingAnalysis.bonus : 0
+
+		return baseScore + waterBonus
 	}
 
 	/**
