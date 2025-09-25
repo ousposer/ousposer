@@ -9,6 +9,7 @@ const express = require("express")
 const { Client } = require("pg")
 const path = require("path")
 const { FreshSpotAnalyzer } = require("./src/fresh-spot-algorithm")
+const { HeatmapAPI } = require("./src/heatmap-api")
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -25,6 +26,22 @@ const DB_CONFIG = {
 // Middleware
 app.use(express.static("public"))
 app.use(express.json())
+
+// CORS middleware for frontend communication
+app.use((req, res, next) => {
+	res.header("Access-Control-Allow-Origin", "*")
+	res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+	res.header(
+		"Access-Control-Allow-Headers",
+		"Origin, X-Requested-With, Content-Type, Accept, Authorization"
+	)
+
+	if (req.method === "OPTIONS") {
+		res.sendStatus(200)
+	} else {
+		next()
+	}
+})
 
 // Database connection pool
 const { Pool } = require("pg")
@@ -588,6 +605,119 @@ app.use((err, req, res, next) => {
 	res.status(500).json({ error: "Something went wrong!" })
 })
 
+/**
+ * Heatmap API Endpoints
+ */
+
+// Get heatmap grid data
+app.get("/api/heatmap", async (req, res) => {
+	try {
+		const heatmapAPI = new HeatmapAPI()
+		const {
+			north,
+			south,
+			east,
+			west,
+			minScore = 0,
+			maxScore = 10,
+			resolution = 100,
+			limit = 10000,
+		} = req.query
+
+		const bounds =
+			north && south && east && west
+				? {
+						north: parseFloat(north),
+						south: parseFloat(south),
+						east: parseFloat(east),
+						west: parseFloat(west),
+				  }
+				: null
+
+		const result = await heatmapAPI.getHeatmapData({
+			bounds,
+			minScore: parseFloat(minScore),
+			maxScore: parseFloat(maxScore),
+			resolution: parseInt(resolution),
+			limit: parseInt(limit),
+		})
+
+		res.json(result)
+	} catch (error) {
+		console.error("Heatmap API error:", error)
+		res.status(500).json({
+			success: false,
+			error: "Failed to fetch heatmap data",
+			details: error.message,
+		})
+	}
+})
+
+// Get heatmap statistics
+app.get("/api/heatmap/stats", async (req, res) => {
+	try {
+		const heatmapAPI = new HeatmapAPI()
+		const { resolution = 100 } = req.query
+
+		const result = await heatmapAPI.getHeatmapStats(parseInt(resolution))
+		res.json(result)
+	} catch (error) {
+		console.error("Heatmap stats error:", error)
+		res.status(500).json({
+			success: false,
+			error: "Failed to fetch heatmap statistics",
+			details: error.message,
+		})
+	}
+})
+
+// Get heatmap data optimized for zoom level
+app.get("/api/heatmap/zoom/:zoom", async (req, res) => {
+	try {
+		const heatmapAPI = new HeatmapAPI()
+		const { zoom } = req.params
+		const { north, south, east, west } = req.query
+
+		const bounds =
+			north && south && east && west
+				? {
+						north: parseFloat(north),
+						south: parseFloat(south),
+						east: parseFloat(east),
+						west: parseFloat(west),
+				  }
+				: null
+
+		const result = await heatmapAPI.getHeatmapForZoom(parseInt(zoom), bounds)
+		res.json(result)
+	} catch (error) {
+		console.error("Heatmap zoom API error:", error)
+		res.status(500).json({
+			success: false,
+			error: "Failed to fetch zoom-optimized heatmap data",
+			details: error.message,
+		})
+	}
+})
+
+// Check if heatmap exists
+app.get("/api/heatmap/status", async (req, res) => {
+	try {
+		const heatmapAPI = new HeatmapAPI()
+		const { resolution = 100 } = req.query
+
+		const result = await heatmapAPI.checkHeatmapExists(parseInt(resolution))
+		res.json(result)
+	} catch (error) {
+		console.error("Heatmap status error:", error)
+		res.status(500).json({
+			success: false,
+			error: "Failed to check heatmap status",
+			details: error.message,
+		})
+	}
+})
+
 // 404 handler - must be last
 app.use((req, res) => {
 	res.status(404).json({ error: "Endpoint not found" })
@@ -609,6 +739,13 @@ if (require.main === module) {
 		console.log(`   📊 Statistics: http://localhost:${PORT}/api/stats`)
 		console.log(
 			`   🔍 Spatial Search: http://localhost:${PORT}/api/search/near?lat=48.8566&lon=2.3522&radius=1`
+		)
+		console.log(
+			`   🌡️  Fresh Spots: http://localhost:${PORT}/api/fresh-spots/analyze?lat=48.8566&lon=2.3522`
+		)
+		console.log(`   🗺️  Heatmap: http://localhost:${PORT}/api/heatmap`)
+		console.log(
+			`   📈 Heatmap Stats: http://localhost:${PORT}/api/heatmap/stats`
 		)
 	})
 }
